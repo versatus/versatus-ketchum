@@ -1,0 +1,22 @@
+{
+  "name": "pokemon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.28",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "@versatus/versatus-javascript": "^0.1.118",
+    "prettier": "^3.2.5"
+  }
+}
