@@ -16,7 +16,7 @@
     "typescript": "^5.4.2"
   },
   "dependencies": {
-    "@versatus/versatus-javascript": "^0.1.118",
+    "@versatus/versatus-javascript": "^0.1.123",
     "prettier": "^3.2.5"
   }
 }

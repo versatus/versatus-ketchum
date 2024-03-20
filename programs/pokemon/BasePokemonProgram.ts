@@ -22,9 +22,9 @@ import {
   validate,
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'
-import { generateInitialEVs, generateIVs } from '../lib/formulae'
+import { generateInitialEVs, generateIVs } from '../../lib/formulae'
 
-class Charmander extends Program {
+export class BasePokemonProgram extends Program {
   constructor() {
     super()
     Object.assign(this.methodStrategies, {
@@ -32,6 +32,22 @@ class Charmander extends Program {
       catch: this.catch.bind(this),
       train: this.train.bind(this),
     })
+  }
+
+  getBaseStats() {
+    return '{}'
+  }
+
+  getInitialImageUrl() {
+    return ''
+  }
+
+  getEvolutionData(level: number) {
+    return {
+      imgUrl: '',
+      symbol: '',
+      name: '',
+    }
   }
 
   create(computeInputs: ComputeInputs) {
@@ -66,10 +82,10 @@ class Charmander extends Program {
       })
 
       const level = '1'
-      const baseStats =
-        '{"hp":39,"attack":52,"defense":43,"spAtk":60,"spDef":50,"speed":65}'
-
-      const imgUrl = 'https://img.pokemondb.net/artwork/avif/bulbasaur.avif'
+      const baseStats = this.getBaseStats()
+      const imgUrl = this.getInitialImageUrl()
+      const methods = 'create,catch,train,update'
+      const holders = '{}'
 
       validate(parseFloat(price), 'invalid price')
 
@@ -80,6 +96,8 @@ class Charmander extends Program {
         price,
         level,
         baseStats,
+        methods,
+        holders,
       })
 
       const addProgramData = buildProgramUpdateField({
@@ -164,19 +182,19 @@ class Charmander extends Program {
         evs,
       })
 
-      const updateCharmanderTokenData = buildTokenUpdateField({
+      const updateCaughtPokemonTokenData = buildTokenUpdateField({
         field: 'data',
         value: dataStr,
         action: 'extend',
       })
 
-      const caughtCharmanderInstructions = buildUpdateInstruction({
+      const caughtPokemonInstructions = buildUpdateInstruction({
         update: new TokenOrProgramUpdate(
           'tokenUpdate',
           new TokenUpdate(
-            new AddressOrNamespace(new Address(String(transaction.to))),
+            new AddressOrNamespace(new Address(String(transaction.from))),
             new AddressOrNamespace(THIS),
-            [updateCharmanderTokenData],
+            [updateCaughtPokemonTokenData],
           ),
         ),
       })
@@ -191,7 +209,7 @@ class Charmander extends Program {
 
       return new Outputs(computeInputs, [
         ...mintInstructions,
-        caughtCharmanderInstructions,
+        caughtPokemonInstructions,
       ]).toJson()
     } catch (e) {
       throw e
@@ -201,55 +219,52 @@ class Charmander extends Program {
   train(computeInputs: ComputeInputs) {
     try {
       const { transaction } = computeInputs
-
       const currProgramInfo = validate(
-        computeInputs.accountInfo,
+        computeInputs.accountInfo?.programs[transaction.to],
         'token missing from self...',
       )
 
       const tokenMetadata = validate(
-        currProgramInfo?.programAccountMetadata,
+        currProgramInfo?.metadata,
         'token missing required metadata to train...',
       )
 
       const tokenData = validate(
-        currProgramInfo?.programAccountData,
-        'token missing required data to train...',
+        currProgramInfo?.data,
+        'token missing required data to mint...',
       )
 
       const metadataUpdate = {
         ...tokenMetadata,
       }
 
-      const level = (parseInt(tokenData.level) + 1).toString()
+      const parsedLevel = parseInt(tokenData.level)
 
+      const level = (parsedLevel + 1).toString()
       const dataUpdate: { level: string; imgUrl?: string } = {
         level,
       }
 
-      if (parseInt(level) === 16) {
-        dataUpdate.imgUrl =
-          'https://img.pokemondb.net/artwork/avif/ivysaur.avif'
-        metadataUpdate.symbol = 'IVYSAUR'
-        metadataUpdate.name = 'Ivysaur'
+      if (parsedLevel === 16) {
+        dataUpdate.imgUrl = this.getEvolutionData(parsedLevel).imgUrl
+        metadataUpdate.symbol = this.getEvolutionData(parsedLevel).symbol
+        metadataUpdate.name = this.getEvolutionData(parsedLevel).name
       } else if (parseInt(level) === 36) {
-        dataUpdate.imgUrl =
-          'https://img.pokemondb.net/artwork/avif/venusaur.avif'
-        metadataUpdate.symbol = 'VENUSAUR'
-        metadataUpdate.name = 'Venusaur'
+        dataUpdate.imgUrl = this.getEvolutionData(parsedLevel).imgUrl
+        metadataUpdate.symbol = this.getEvolutionData(parsedLevel).symbol
+        metadataUpdate.name = this.getEvolutionData(parsedLevel).name
       }
 
       const dataStr = validateAndCreateJsonString(dataUpdate)
-
       const metadataStr = validateAndCreateJsonString(metadataUpdate)
 
-      const addProgramMetadata = buildProgramUpdateField({
+      const updateMetadata = buildTokenUpdateField({
         field: 'metadata',
         value: metadataStr,
         action: 'extend',
       })
 
-      const updateCharmanderTokenData = buildProgramUpdateField({
+      const updateTokenData = buildTokenUpdateField({
         field: 'data',
         value: dataStr,
         action: 'extend',
@@ -257,11 +272,12 @@ class Charmander extends Program {
 
       const programUpdateInstructions = buildUpdateInstruction({
         update: new TokenOrProgramUpdate(
-          'programUpdate',
-          new ProgramUpdate(new AddressOrNamespace(THIS), [
-            addProgramMetadata,
-            updateCharmanderTokenData,
-          ]),
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(new Address(transaction.from)),
+            new AddressOrNamespace(THIS),
+            [updateMetadata, updateTokenData],
+          ),
         ),
       })
 
@@ -271,39 +287,3 @@ class Charmander extends Program {
     }
   }
 }
-
-const start = (input: ComputeInputs) => {
-  try {
-    const contract = new Charmander()
-    return contract.start(input)
-  } catch (e) {
-    throw e
-  }
-}
-
-process.stdin.setEncoding('utf8')
-
-let data = ''
-
-process.stdin.on('readable', () => {
-  try {
-    let chunk
-
-    while ((chunk = process.stdin.read()) !== null) {
-      data += chunk
-    }
-  } catch (e) {
-    throw e
-  }
-})
-
-process.stdin.on('end', () => {
-  try {
-    const parsedData = JSON.parse(data)
-    const result = start(parsedData)
-    process.stdout.write(JSON.stringify(result))
-  } catch (err) {
-    // @ts-ignore
-    process.stdout.write(err.message)
-  }
-})
