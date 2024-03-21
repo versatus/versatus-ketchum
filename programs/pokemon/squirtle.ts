@@ -12,19 +12,26 @@ class Squirtle extends BasePokemonProgram {
   }
 
   getEvolutionData(level: number) {
-    if (level === 16) {
-      return {
-        imgUrl: 'https://img.pokemondb.net/artwork/avif/wartortle.avif',
-        symbol: 'WARTORTLE',
-        name: 'Wartortle',
-      }
-    } else if (level === 36) {
+    if (level >= 36) {
       return {
         imgUrl: 'https://img.pokemondb.net/artwork/avif/blastoise.avif',
         symbol: 'BLASTOISE',
         name: 'Blastoise',
       }
+    } else if (level >= 16) {
+      return {
+        imgUrl: 'https://img.pokemondb.net/artwork/avif/wartortle.avif',
+        symbol: 'WARTORTLE',
+        name: 'Wartortle',
+      }
+    } else {
+      return {
+        imgUrl: 'https://img.pokemondb.net/artwork/avif/squirtle.avif',
+        symbol: 'SQUIRTLE',
+        name: 'Squirtle',
+      }
     }
+
     return super.getEvolutionData(level)
   }
 }

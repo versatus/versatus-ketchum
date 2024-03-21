@@ -24,6 +24,12 @@ class Charmander extends BasePokemonProgram {
         symbol: 'CHARMELEON',
         name: 'Charmeleon',
       }
+    } else {
+      return {
+        imgUrl: 'https://img.pokemondb.net/artwork/avif/charmander.avif',
+        symbol: 'CHARMANDER',
+        name: 'Charmander',
+      }
     }
     return super.getEvolutionData(level)
   }

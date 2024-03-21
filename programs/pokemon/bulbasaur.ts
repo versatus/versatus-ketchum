@@ -24,7 +24,14 @@ class Bulbasaur extends BasePokemonProgram {
         symbol: 'IVYSAUR',
         name: 'Ivysaur',
       }
+    } else {
+      return {
+        imgUrl: 'https://img.pokemondb.net/artwork/avif/bulbasaur.avif',
+        symbol: 'BULBASAUR',
+        name: 'Bulbasaur',
+      }
     }
+
     return super.getEvolutionData(level)
   }
 }

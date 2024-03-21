@@ -245,14 +245,14 @@ export class BasePokemonProgram extends Program {
         level,
       }
 
-      if (parsedLevel === 16) {
-        dataUpdate.imgUrl = this.getEvolutionData(parsedLevel).imgUrl
-        metadataUpdate.symbol = this.getEvolutionData(parsedLevel).symbol
-        metadataUpdate.name = this.getEvolutionData(parsedLevel).name
-      } else if (parseInt(level) === 36) {
-        dataUpdate.imgUrl = this.getEvolutionData(parsedLevel).imgUrl
-        metadataUpdate.symbol = this.getEvolutionData(parsedLevel).symbol
-        metadataUpdate.name = this.getEvolutionData(parsedLevel).name
+      if (parseInt(level) >= 36) {
+        dataUpdate.imgUrl = this.getEvolutionData(parseInt(level)).imgUrl
+        metadataUpdate.symbol = this.getEvolutionData(parseInt(level)).symbol
+        metadataUpdate.name = this.getEvolutionData(parseInt(level)).name
+      } else if (parseInt(level) >= 16) {
+        dataUpdate.imgUrl = this.getEvolutionData(parseInt(level)).imgUrl
+        metadataUpdate.symbol = this.getEvolutionData(parseInt(level)).symbol
+        metadataUpdate.name = this.getEvolutionData(parseInt(level)).name
       }
 
       const dataStr = validateAndCreateJsonString(dataUpdate)
