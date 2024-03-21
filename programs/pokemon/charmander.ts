@@ -12,17 +12,17 @@ class Charmander extends BasePokemonProgram {
   }
 
   getEvolutionData(level: number) {
-    if (level === 16) {
-      return {
-        imgUrl: 'https://img.pokemondb.net/artwork/avif/charmeleon.avif',
-        symbol: 'CHARMELEON',
-        name: 'Charmeleon',
-      }
-    } else if (level === 36) {
+    if (level >= 36) {
       return {
         imgUrl: 'https://img.pokemondb.net/artwork/avif/charizard.avif',
         symbol: 'CHARIZARD',
         name: 'Charizard',
+      }
+    } else if (level >= 16) {
+      return {
+        imgUrl: 'https://img.pokemondb.net/artwork/avif/charmeleon.avif',
+        symbol: 'CHARMELEON',
+        name: 'Charmeleon',
       }
     }
     return super.getEvolutionData(level)

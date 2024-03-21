@@ -12,17 +12,17 @@ class Bulbasaur extends BasePokemonProgram {
   }
 
   getEvolutionData(level: number) {
-    if (level === 16) {
-      return {
-        imgUrl: 'https://img.pokemondb.net/artwork/avif/ivysaur.avif',
-        symbol: 'IVYSAUR',
-        name: 'Ivysaur',
-      }
-    } else if (level === 36) {
+    if (level >= 36) {
       return {
         imgUrl: 'https://img.pokemondb.net/artwork/avif/venusaur.avif',
         symbol: 'VENUSAUR',
         name: 'Venusaur',
+      }
+    } else if (level >= 16) {
+      return {
+        imgUrl: 'https://img.pokemondb.net/artwork/avif/ivysaur.avif',
+        symbol: 'IVYSAUR',
+        name: 'Ivysaur',
       }
     }
     return super.getEvolutionData(level)

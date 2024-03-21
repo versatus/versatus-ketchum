@@ -182,7 +182,7 @@ export class BasePokemonProgram extends Program {
         evs,
       })
 
-      const updateCaughtPokemonTokenData = buildTokenUpdateField({
+      const updateCaughtPokemonTokenData = buildProgramUpdateField({
         field: 'data',
         value: dataStr,
         action: 'extend',
@@ -190,12 +190,10 @@ export class BasePokemonProgram extends Program {
 
       const caughtPokemonInstructions = buildUpdateInstruction({
         update: new TokenOrProgramUpdate(
-          'tokenUpdate',
-          new TokenUpdate(
-            new AddressOrNamespace(new Address(String(transaction.from))),
-            new AddressOrNamespace(THIS),
-            [updateCaughtPokemonTokenData],
-          ),
+          'programUpdate',
+          new ProgramUpdate(new AddressOrNamespace(THIS), [
+            updateCaughtPokemonTokenData,
+          ]),
         ),
       })
 
@@ -238,7 +236,9 @@ export class BasePokemonProgram extends Program {
         ...tokenMetadata,
       }
 
-      const parsedLevel = parseInt(tokenData.level)
+      const parsedLevel = parseInt(
+        computeInputs.accountInfo.programAccountData.level,
+      )
 
       const level = (parsedLevel + 1).toString()
       const dataUpdate: { level: string; imgUrl?: string } = {
@@ -258,13 +258,13 @@ export class BasePokemonProgram extends Program {
       const dataStr = validateAndCreateJsonString(dataUpdate)
       const metadataStr = validateAndCreateJsonString(metadataUpdate)
 
-      const updateMetadata = buildTokenUpdateField({
+      const updateMetadata = buildProgramUpdateField({
         field: 'metadata',
         value: metadataStr,
         action: 'extend',
       })
 
-      const updateTokenData = buildTokenUpdateField({
+      const updateTokenData = buildProgramUpdateField({
         field: 'data',
         value: dataStr,
         action: 'extend',
@@ -272,12 +272,11 @@ export class BasePokemonProgram extends Program {
 
       const programUpdateInstructions = buildUpdateInstruction({
         update: new TokenOrProgramUpdate(
-          'tokenUpdate',
-          new TokenUpdate(
-            new AddressOrNamespace(new Address(transaction.from)),
-            new AddressOrNamespace(THIS),
-            [updateMetadata, updateTokenData],
-          ),
+          'programUpdate',
+          new ProgramUpdate(new AddressOrNamespace(THIS), [
+            updateMetadata,
+            updateTokenData,
+          ]),
         ),
       })
 
