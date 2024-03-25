@@ -309,7 +309,7 @@ export class BasePokemonProgram extends Program {
   }
 }
 
-const constructorArguments = JSON.stringify('REPLACE_ME')
+const constructorArguments = JSON.stringify({"0":{"id":77,"name":"ponyta","symbol":"PONYTA","baseStats":"{\"hp\":50,\"attack\":85,\"defense\":55,\"spAtk\":65,\"spDef\":65,\"speed\":90}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/77.gif"},"40":{"id":78,"name":"rapidash","symbol":"RAPIDASH","baseStats":"{\"hp\":65,\"attack\":100,\"defense\":70,\"spAtk\":80,\"spDef\":80,\"speed\":105}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/78.gif"}})
 
 const start = (input: ComputeInputs) => {
   try {

@@ -309,7 +309,7 @@ export class BasePokemonProgram extends Program {
   }
 }
 
-const constructorArguments = JSON.stringify('REPLACE_ME')
+const constructorArguments = JSON.stringify({"0":{"id":10,"name":"caterpie","symbol":"CATERPIE","baseStats":"{\"hp\":45,\"attack\":30,\"defense\":35,\"spAtk\":20,\"spDef\":20,\"speed\":45}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/10.gif"},"7":{"id":11,"name":"metapod","symbol":"METAPOD","baseStats":"{\"hp\":50,\"attack\":20,\"defense\":55,\"spAtk\":25,\"spDef\":25,\"speed\":30}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/11.gif"},"10":{"id":12,"name":"butterfree","symbol":"BUTTERFREE","baseStats":"{\"hp\":60,\"attack\":45,\"defense\":50,\"spAtk\":90,\"spDef\":80,\"speed\":70}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/12.gif"}})
 
 const start = (input: ComputeInputs) => {
   try {

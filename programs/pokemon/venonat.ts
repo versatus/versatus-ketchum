@@ -309,7 +309,7 @@ export class BasePokemonProgram extends Program {
   }
 }
 
-const constructorArguments = JSON.stringify('REPLACE_ME')
+const constructorArguments = JSON.stringify({"0":{"id":48,"name":"venonat","symbol":"VENONAT","baseStats":"{\"hp\":60,\"attack\":55,\"defense\":50,\"spAtk\":40,\"spDef\":55,\"speed\":45}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/48.gif"},"31":{"id":49,"name":"venomoth","symbol":"VENOMOTH","baseStats":"{\"hp\":70,\"attack\":65,\"defense\":60,\"spAtk\":90,\"spDef\":75,\"speed\":90}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/49.gif"}})
 
 const start = (input: ComputeInputs) => {
   try {

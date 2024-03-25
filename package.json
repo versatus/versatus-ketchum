@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@versatus/versatus-javascript": "^0.1.123",
+    "axios": "^1.6.8",
     "prettier": "^3.2.5"
   }
 }
