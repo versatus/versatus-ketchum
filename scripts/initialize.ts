@@ -11,6 +11,15 @@ type Stat = {
   }
 }
 
+interface Move {
+  name: string
+  type: string
+  url: string
+  level_learned_at: number
+  power: number
+  pp: number
+}
+
 type ConvertedStats = {
   hp: number
   attack: number
@@ -20,17 +29,32 @@ type ConvertedStats = {
   speed: number
 }
 
+interface EvolutionData {
+  id: number
+  name: string
+  symbol: string
+  baseStats: string
+  imgUrl: string
+  moves: string
+}
+
 const getPokemon = async (pokemonNameOrId: string | number) => {
   try {
     const response = await axios.get(
       `https://pokeapi.co/api/v2/pokemon/${pokemonNameOrId}`,
     )
     const pokemon = response.data
-    const { id, name, stats, sprites } = pokemon
-    const baseStats = JSON.stringify(convertStats(stats))
+    const { id, name, stats, sprites, moves } = pokemon
+
+    const convertedStats = convertStats(stats)
+
+    const baseStats = JSON.stringify(convertedStats)
     const imgUrl =
       sprites?.['versions']?.['generation-v']?.['black-white']?.['animated']
         .front_default
+
+    // @ts-ignore
+    const movesData: Move[] = await buildMoves(moves)
 
     return {
       id,
@@ -38,23 +62,53 @@ const getPokemon = async (pokemonNameOrId: string | number) => {
       symbol: name.toUpperCase(),
       baseStats,
       imgUrl,
-    }
+      moves: JSON.stringify(movesData),
+    } as EvolutionData
   } catch (error) {
     console.log(error)
   }
+}
+
+const buildMoves = async (moves: any[]) => {
+  const filtered = moves
+    .filter((move: { version_group_details: any[] }) =>
+      move.version_group_details.find(
+        group => group.version_group?.name === 'red-blue',
+      ),
+    )
+    .slice(0, 4)
+  const updatedMoves = []
+  for await (const move of filtered) {
+    const { pp, power, type } = await fetchPokeApiData(move.move.url)
+    updatedMoves.push({
+      name: move.move.name,
+      pp,
+      power,
+      type: type.name,
+    })
+  }
+  return updatedMoves
 }
 
 const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
   try {
     const pokemon = await getPokemon(pokemonNameOrId)
     if (!pokemon) throw new Error(`couldn't find ${pokemonNameOrId}`)
-    const { id, name, baseStats, symbol, imgUrl } = pokemon
+    const { id, name, baseStats, symbol, imgUrl, moves } = pokemon
     const specie = await fetchPokemonSpecies(id)
     const { evolution_chain: evoChain } = specie
     const { chain } = await fetchPokeApiData(evoChain.url)
 
     const builtPokemon = {
-      '0': { id, name, symbol, baseStats, imgUrl },
+      '1': {
+        id,
+        name,
+        symbol,
+        baseStats,
+        imgUrl,
+        level: '1',
+        moves,
+      },
     }
 
     if (chain.evolves_to.length > 0) {
@@ -69,6 +123,8 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
         chain.evolves_to[0].evolves_to[0].evolution_details[0].min_level ?? '32'
       ] = await getPokemon(chain.evolves_to[0].evolves_to[0].species.name)
     }
+
+    console.log(JSON.stringify(builtPokemon))
 
     return builtPokemon
   } catch (e) {
@@ -151,13 +207,11 @@ async function fetchMultiplePokemons(
   }
 }
 
-// fetchMultiplePokemons(['eevee'])
-
 async function buildPokemonClass(pokemonName: string) {
-  const buildCommand = `lasrctl build programs/pokemon/${pokemonName}.ts`
+  const buildCommand = `lasrctl build programs/${pokemonName}.ts`
   try {
     const result = await runCommand(buildCommand)
-    console.log(`Build successful for ${pokemonName}: `, result)
+    console.log(`Build successful for ${pokemonName}`)
   } catch (error) {
     console.error(`Build failed for ${pokemonName}: `, error)
   }
@@ -174,7 +228,7 @@ async function testPokemonClass(pokemonName: string) {
 }
 
 async function deployPokemon(pokemonName: string) {
-  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 1 -t 1 -i '{"price":"1","paymentProgramAddress":"${VERSE_PROGRAM_ADDRESS}"}'`
+  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 3 -t 3 -i '{"price":"1","paymentProgramAddress":"${VERSE_PROGRAM_ADDRESS}"}'`
   try {
     const result = await runCommand(buildCommand)
     console.log(`Deploy successful for ${pokemonName}: `, result)
@@ -206,22 +260,36 @@ async function registerPokemon(pokemonName: string, programAddress: string) {
 
 async function initializePokemons(pokemonToInitialize: string[]) {
   try {
-    console.log(`deploying ${pokemonToInitialize.map(v => `${v}`)}`)
+    console.log(
+      `Fetching desired pokemons: ${pokemonToInitialize.map(v => `${v}`)}`,
+    )
+
     const pokemonDataList = await fetchMultiplePokemons(pokemonToInitialize)
-    console.log('pokemons fetched')
+    console.log('Pokemons fetched')
     for (const pokemonDataString of pokemonDataList) {
-      // Parse the JSON data to access the name property
       const pokemonData = JSON.parse(pokemonDataString)
       const pokemonName = pokemonData[Object.keys(pokemonData)[0]].name // Assuming '0' is always the first key
-
-      // Run the createPokemonClass.sh script
-      const createCommand = `./scripts/createPokemonClass.sh programs/pokemon/BasePokemonProgram.ts '${JSON.stringify(pokemonData)}' ${pokemonName}`
+      console.log(
+        `rm -rf ./programs/${pokemonName}.ts ./build/lib/${pokemonName}.js ./build/programs/${pokemonName}.js`,
+      )
       try {
+        await runCommand(`rm -rf ./programs/${pokemonName}.ts`)
+        await runCommand(`./build/lib/${pokemonName}.js`)
+        await runCommand(`./build/programs/${pokemonName}.js`)
+      } catch (e) {
+        console.log('no files found to delete')
+      }
+
+      console.log('DELTED SOME FILES')
+
+      const createCommand = `./scripts/createPokemonClass.sh programs/BasePokemonProgram.ts '${JSON.stringify(pokemonData)}' ${pokemonName}`
+      try {
+        console.log(`Creating ${pokemonName} class...`)
         await runCommand(createCommand)
         console.log(`Class creation successful for ${pokemonName}`)
       } catch (error) {
         console.error(`Class creation failed for ${pokemonName}: `, error)
-        continue // Skip building if class creation fails
+        continue
       }
 
       console.log('Building Pokemon Class with lasrctl...')
@@ -259,29 +327,55 @@ async function initializePokemons(pokemonToInitialize: string[]) {
 }
 
 initializePokemons([
-  // 'weedle',
-  // 'pidgey',
-  // 'rattata',
-  // 'spearow',
-  // 'jigglypuff',
-  // 'zubat',
-  // 'oddish',
-  // 'paras',
-  // 'venonat',
-  // 'diglett',
-  // 'meowth',
-  'psyduck',
-  'mankey',
-  'growlithe',
-  'poliwag',
-  'abra',
-  'machop',
-  'bellsprout',
-  'geodude',
-  'ponyta',
-  'slowpoke',
-  'magnemite',
-  'doduo',
-  'seel',
-  'grimer',
+  'bulbasaur',
+  // "charmander",
+  // "squirtle",
+  // "caterpie",
+  // "weedle",
+  // "pidgey",
+  // "rattata",
+  // "spearow",
+  // "ekans",
+  // "pikachu",
+  // "sandshrew",
+  // "nidoran♀",
+  // "nidoran♂",
+  // "clefairy",
+  // "vulpix",
+  // "jigglypuff",
+  // "zubat",
+  // "oddish",
+  // "paras",
+  // "venonat",
+  // "diglett",
+  // "meowth",
+  // "psyduck",
+  // "mankey",
+  // "growlithe",
+  // "poliwag",
+  // "abra",
+  // "machop",
+  // "bellsprout",
+  // "tentacool",
+  // "geodude",
+  // "ponyta",
+  // "slowpoke",
+  // "magnemite",
+  // "doduo",
+  // "seel",
+  // "grimer",
+  // "shellder",
+  // "gastly",
+  // "drowzee",
+  // "krabby",
+  // "voltorb",
+  // "exeggcute",
+  // "cubone",
+  // "koffing",
+  // "rhyhorn",
+  // "horsea",
+  // "goldeen",
+  // "staryu",
+  // "magikarp",
+  // "eevee",
 ])
