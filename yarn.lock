@@ -1198,10 +1198,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@versatus/versatus-javascript@^0.1.134":
-  version "0.1.134"
-  resolved "https://registry.yarnpkg.com/@versatus/versatus-javascript/-/versatus-javascript-0.1.134.tgz#398fcfbc6dbb54967a6ca76d294d33965c8b00b9"
-  integrity sha512-7Ujoht6qBmREUb4lozX17tvgiXWhhqy7dTUNsa+mpse8N8lhxFrdjts8FvmimFRmURPcN+ken21mDuAVFjHkGg==
+"@versatus/versatus-javascript@^0.1.135":
+  version "0.1.135"
+  resolved "https://registry.yarnpkg.com/@versatus/versatus-javascript/-/versatus-javascript-0.1.135.tgz#9d0b656d8c098d6071273a26a213c89b845c3342"
+  integrity sha512-OV3Gu+GWDrRujgXLCzDAns+gKp4BBlNRwVnNXxNngsPkOCgO+/jgv30rYOLUEbltOOihby/kdPJPWU3InUxCwQ==
   dependencies:
     "@babel/core" "^7.23.9"
     "@babel/plugin-proposal-class-properties" "^7.18.6"

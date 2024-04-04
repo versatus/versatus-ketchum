@@ -1,6 +1,10 @@
 import axios from 'axios'
 import { runCommand } from '../lib/shell'
-import { KETCHUM_PROGRAM_ADDRESS, VERSE_PROGRAM_ADDRESS } from '../lib/consts'
+import {
+  KETCHUM_POKEBALL_ADDRESS,
+  KETCHUM_PROGRAM_ADDRESS,
+  VERSE_PROGRAM_ADDRESS,
+} from '../lib/consts'
 
 type Stat = {
   base_stat: number
@@ -228,7 +232,8 @@ async function testPokemonClass(pokemonName: string) {
 }
 
 async function deployPokemon(pokemonName: string) {
-  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 3 -t 3 -i '{"price":"1","paymentProgramAddress":"${VERSE_PROGRAM_ADDRESS}"}'`
+  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 3 -t 3 --txInputs '{"price":"1","paymentProgramAddress":"${KETCHUM_POKEBALL_ADDRESS}"}' --createTestFilePath pokemon-inputs/pokemon-create.json`
+  console.log(`running command: ${buildCommand}`)
   try {
     const result = await runCommand(buildCommand)
     console.log(`Deploy successful for ${pokemonName}: `, result)
@@ -294,6 +299,7 @@ async function initializePokemons(pokemonToInitialize: string[]) {
 
       console.log('Building Pokemon Class with lasrctl...')
       await buildPokemonClass(pokemonName)
+
       console.log(`Deploying ${pokemonName} with lasrctl...`)
       const result = await deployPokemon(pokemonName)
       console.log(`${pokemonName} deployed!`)
@@ -327,55 +333,54 @@ async function initializePokemons(pokemonToInitialize: string[]) {
 }
 
 initializePokemons([
-  'bulbasaur',
-  // "charmander",
-  // "squirtle",
-  // "caterpie",
-  // "weedle",
-  // "pidgey",
-  // "rattata",
-  // "spearow",
-  // "ekans",
-  // "pikachu",
-  // "sandshrew",
-  // "nidoran♀",
-  // "nidoran♂",
-  // "clefairy",
-  // "vulpix",
-  // "jigglypuff",
-  // "zubat",
-  // "oddish",
-  // "paras",
-  // "venonat",
-  // "diglett",
-  // "meowth",
-  // "psyduck",
-  // "mankey",
-  // "growlithe",
-  // "poliwag",
-  // "abra",
-  // "machop",
-  // "bellsprout",
-  // "tentacool",
-  // "geodude",
-  // "ponyta",
-  // "slowpoke",
-  // "magnemite",
-  // "doduo",
-  // "seel",
-  // "grimer",
-  // "shellder",
-  // "gastly",
-  // "drowzee",
-  // "krabby",
-  // "voltorb",
-  // "exeggcute",
-  // "cubone",
-  // "koffing",
-  // "rhyhorn",
-  // "horsea",
-  // "goldeen",
-  // "staryu",
-  // "magikarp",
-  // "eevee",
+  // 'bulbasaur',
+  // 'charmander',
+  // 'squirtle',
+  // 'caterpie',
+  // 'weedle',
+  // 'pidgey',
+  // 'rattata',
+  // 'spearow',
+  // 'ekans',
+  'pichu',
+  'sandshrew',
+  'nidoran',
+  'clefairy',
+  'vulpix',
+  'jigglypuff',
+  'zubat',
+  'oddish',
+  'paras',
+  'venonat',
+  'diglett',
+  'meowth',
+  'psyduck',
+  'mankey',
+  'growlithe',
+  'poliwag',
+  'abra',
+  // 'machop',
+  // 'bellsprout',
+  // 'tentacool',
+  // 'geodude',
+  // 'ponyta',
+  // 'slowpoke',
+  // 'magnemite',
+  // 'doduo',
+  // 'seel',
+  // 'grimer',
+  // 'shellder',
+  // 'gastly',
+  // 'drowzee',
+  // 'krabby',
+  // 'voltorb',
+  // 'exeggcute',
+  // 'cubone',
+  // 'koffing',
+  // 'rhyhorn',
+  // 'horsea',
+  // 'goldeen',
+  // 'staryu',
+  // 'magikarp',
+  // 'eevee',
 ])

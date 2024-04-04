@@ -1,7 +1,10 @@
 import {
   Address,
+  buildTransferInstruction,
   ComputeInputs,
   formatHexToAmount,
+  parseProgramInfo,
+  parseTxInputs,
   TokenUpdate,
 } from '@versatus/versatus-javascript'
 
@@ -104,7 +107,23 @@ export class BasePokemonProgram extends Program {
   }
 
   getEvolutionData(level: number): EvolutionData | undefined {
-    return this.evolutionMap.get(level)
+    // Check if the exact level exists first
+    let evolutionData = this.evolutionMap.get(level)
+
+    // If it doesn't exist, find the next lowest level
+    if (!evolutionData) {
+      let previousLevels = Array.from(this.evolutionMap.keys())
+        .filter(lvl => lvl <= level)
+        .sort((a, b) => b - a) // Sort in descending order
+
+      // Get the closest level that does not exceed the current level
+      let closestLevel = previousLevels.length > 0 ? previousLevels[0] : null
+      if (closestLevel !== null) {
+        evolutionData = this.evolutionMap.get(closestLevel)
+      }
+    }
+
+    return evolutionData
   }
 
   getInitialImageUrl(): string {
@@ -161,6 +180,7 @@ export class BasePokemonProgram extends Program {
         baseStats,
         moves,
         level,
+        tokenMap: '{}',
       })
 
       const addProgramData = buildProgramUpdateField({
@@ -207,30 +227,24 @@ export class BasePokemonProgram extends Program {
 
   catch(computeInputs: ComputeInputs) {
     try {
-      const { transaction } = computeInputs
-      const { to, from } = transaction
-      const currProgramInfo = validate(
-        computeInputs.accountInfo?.programs[to],
-        'token missing from self...',
-      )
+      const { transaction, accountInfo } = computeInputs
+      const { from } = transaction
+      const programInfo = parseProgramInfo(computeInputs)
 
       const data = validate(
-        currProgramInfo?.data,
+        accountInfo?.programAccountData,
         'token missing required data to mint...',
       )
 
-      const price = parseInt(data.price)
-      const paymentProgramAddress = data.paymentProgramAddress
+      // const price = parseInt(data.price)
+      // const paymentProgramAddress = data.paymentProgramAddress
 
       const availableTokenIds = validate(
-        currProgramInfo?.tokenIds,
+        programInfo?.tokenIds,
         'missing nfts to mint...',
       )
 
-      const tokenIds = []
-
-      tokenIds.push(availableTokenIds[0])
-      const amountNeededToMint = parseAmountToBigInt(price.toString())
+      const tokenIds = [availableTokenIds[0]]
 
       const tokenMap = validate(
         JSON.parse(data.tokenMap),
@@ -240,16 +254,18 @@ export class BasePokemonProgram extends Program {
       const ivs = JSON.stringify(generateIVs())
       const evs = JSON.stringify(generateInitialEVs())
 
-      for (let i = 0; i < tokenIds.length; i++) {
-        const tokenIdStr = parseInt(formatHexToAmount(tokenIds[i])).toString()
-        const token = tokenMap[tokenIdStr]
-        tokenMap[tokenIdStr] = {
-          ownerAddress: transaction.from,
-          imgUrl: token.imgUrl,
-          level: '1',
-          ivs,
-          evs,
-        }
+      const tokenIdStr = parseInt(
+        formatHexToAmount(availableTokenIds[0]),
+      ).toString()
+
+      tokenMap[tokenIdStr] = {
+        ownerAddress: transaction.from,
+        imgUrl: data.imgUrl,
+        level: '1',
+        exp: '0',
+        ivs,
+        evs,
+        moves: data.moves,
       }
 
       const dataStr = validateAndCreateJsonString({
@@ -273,16 +289,27 @@ export class BasePokemonProgram extends Program {
         ),
       })
 
-      const mintInstructions = buildMintInstructions({
-        from: transaction.from,
-        programId: transaction.programId,
-        paymentTokenAddress: paymentProgramAddress,
-        inputValue: amountNeededToMint,
-        returnedTokenIds: tokenIds,
+      // const transferToProgram = buildTransferInstruction({
+      //   from: from,
+      //   to: 'this',
+      //   tokenAddress: paymentProgramAddress,
+      //   tokenIds: tokenIds,
+      // })
+
+      // if (Math.random() < 0.5) {
+      //   return new Outputs(computeInputs, [transferToProgram]).toJson()
+      // }
+
+      const transferToCaller = buildTransferInstruction({
+        from: THIS,
+        to: from,
+        tokenAddress: transaction.to,
+        tokenIds,
       })
 
       return new Outputs(computeInputs, [
-        ...mintInstructions,
+        // transferToProgram,
+        transferToCaller,
         caughtPokemonInstructions,
       ]).toJson()
     } catch (e) {
@@ -300,28 +327,23 @@ export class BasePokemonProgram extends Program {
         'unable to parse transactionInputs',
       )
 
-      const tokenId = validate(
-        txInputs?.tokenId,
-        'missing tokenId in transactionInputs...',
-      )
+      const { tokenId, tokenMap: tokenMapStr } = txInputs
+      validate(tokenId, 'missing tokenId in transactionInputs...')
 
-      const currProgramInfo = validate(
-        computeInputs.accountInfo?.programs[transaction.to],
-        'token missing from self...',
-      )
+      const programInfo = parseProgramInfo(computeInputs)
 
       const metadata = validate(
-        currProgramInfo?.metadata,
+        programInfo?.metadata,
         'token missing required data to mint...',
       )
 
       const data = validate(
-        currProgramInfo?.data,
+        programInfo?.data,
         'token missing required data to mint...',
       )
 
       const tokenMap = validate(
-        JSON.parse(data.tokenMap),
+        JSON.parse(tokenMapStr),
         'tokenMap is not valid',
       )
 
@@ -329,17 +351,16 @@ export class BasePokemonProgram extends Program {
       const pokemon = tokenMap[tokenIdStr]
       const currentLevel = parseInt(pokemon?.level)
       const nextLevel = currentLevel + 1
-      console.log(nextLevel)
       const evolutionData = this.getEvolutionData(nextLevel)
 
       const metadataUpdate = { ...metadata }
       if (evolutionData) {
-        tokenMap[tokenIdStr].level = nextLevel.toString()
         tokenMap[tokenIdStr].imgUrl = evolutionData.imgUrl
         metadataUpdate.symbol = evolutionData.symbol
         metadataUpdate.name = evolutionData.name
       }
 
+      tokenMap[tokenIdStr].level = nextLevel.toString()
       const dataUpdate = { ...data, tokenMap: JSON.stringify(tokenMap) }
 
       const dataStr = validateAndCreateJsonString(dataUpdate)

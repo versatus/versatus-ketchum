@@ -4,7 +4,7 @@
   "transaction":{
     "from":"0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to":"0x482830d7655fb8465a43844fc1530a7713781b49",
-    "transactionInputs": "{\"tokenId\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+    "transactionInputs": "{\"tokenId\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"tokenMap\":\"{\\\"0\\\":{\\\"ownerAddress\\\":\\\"0x1234d4b33fa19bf655519f10e8fded9e31259b28\\\",\\\"imgUrl\\\":\\\"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif\\\",\\\"level\\\":\\\"1\\\",\\\"exp\\\":\\\"0\\\",\\\"ivs\\\":\\\"{\\\\\\\"hp\\\\\\\":11,\\\\\\\"attack\\\\\\\":0,\\\\\\\"defense\\\\\\\":7,\\\\\\\"speed\\\\\\\":1,\\\\\\\"special\\\\\\\":12}\\\",\\\"evs\\\":\\\"{\\\\\\\"hp\\\\\\\":0,\\\\\\\"attack\\\\\\\":0,\\\\\\\"defense\\\\\\\":0,\\\\\\\"speed\\\\\\\":0,\\\\\\\"special\\\\\\\":0}\\\",\\\"baseStats\\\":\\\"{\\\\\\\"hp\\\\\\\":45,\\\\\\\"attack\\\\\\\":49,\\\\\\\"defense\\\\\\\":49,\\\\\\\"spAtk\\\\\\\":65,\\\\\\\"spDef\\\\\\\":65,\\\\\\\"speed\\\\\\\":45}\\\",\\\"moves\\\":\\\"[{\\\\\\\"name\\\\\\\":\\\\\\\"swords-dance\\\\\\\",\\\\\\\"pp\\\\\\\":20,\\\\\\\"power\\\\\\\":null,\\\\\\\"type\\\\\\\":\\\\\\\"normal\\\\\\\"},{\\\\\\\"name\\\\\\\":\\\\\\\"cut\\\\\\\",\\\\\\\"pp\\\\\\\":30,\\\\\\\"power\\\\\\\":50,\\\\\\\"type\\\\\\\":\\\\\\\"normal\\\\\\\"},{\\\\\\\"name\\\\\\\":\\\\\\\"vine-whip\\\\\\\",\\\\\\\"pp\\\\\\\":25,\\\\\\\"power\\\\\\\":45,\\\\\\\"type\\\\\\\":\\\\\\\"grass\\\\\\\"},{\\\\\\\"name\\\\\\\":\\\\\\\"tackle\\\\\\\",\\\\\\\"pp\\\\\\\":35,\\\\\\\"power\\\\\\\":40,\\\\\\\"type\\\\\\\":\\\\\\\"normal\\\\\\\"}]\\\"}}\"}",
     "nonce":"0x0000000000000000000000000000000000000000000000000000000000000001",
     "op":"train",
     "programId":"0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
@@ -43,7 +43,7 @@
           "price": "1",
           "paymentProgramAddress": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
           "imgUrl": "https://pbs.twimg.com/profile_images/1765199894539583488/RUiZn7jT_400x400.jpg",
-          "tokenMap":"{\"0\":{\"ownerAddress\":\"this\",\"imgUrl\":\"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif\",\"baseStats\":\"{\\\"hp\\\":45,\\\"attack\\\":49,\\\"defense\\\":49,\\\"spAtk\\\":65,\\\"spDef\\\":65,\\\"speed\\\":45}\",\"level\":\"1\"},\"type\":\"non-fungible\",\"status\":\"free\"}"
+          "tokenMap":"{\"0\":{\"ownerAddress\":\"this\",\"imgUrl\":\"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif\",\"baseStats\":\"{\\\"hp\\\":45,\\\"attack\\\":49,\\\"defense\\\":49,\\\"spAtk\\\":65,\\\"spDef\\\":65,\\\"speed\\\":45}\",\"level\":\"1\"}}"
         },
         "status": "free"
       }

@@ -116,6 +116,7 @@ class Pokeball extends Program {
         paymentProgramAddress,
         price,
         methods,
+        collection,
       } as Record<string, string>
 
       // if we have an array of imgUrls, we'll add them here
