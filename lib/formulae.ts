@@ -42,22 +42,22 @@ export function calculateHP(
  * Generates random IVs for a Pokémon's stats in Pokémon Red and Blue.
  * Each IV can range from 0 to 15.
  *
- * @returns { { hp: number, attack: number, defense: number, speed: number, special: number } }
+ * @returns { { hp: string, attack: string, defense: string, speed: string, special: string } }
  * An object containing the generated IVs for each stat.
  */
 export function generateIVs(): {
-  hp: number
-  attack: number
-  defense: number
-  speed: number
-  special: number
+  hp: string
+  attack: string
+  defense: string
+  speed: string
+  special: string
 } {
   return {
-    hp: Math.floor(Math.random() * 16),
-    attack: Math.floor(Math.random() * 16),
-    defense: Math.floor(Math.random() * 16),
-    speed: Math.floor(Math.random() * 16),
-    special: Math.floor(Math.random() * 16),
+    hp: Math.floor(Math.random() * 16).toString(),
+    attack: Math.floor(Math.random() * 16).toString(),
+    defense: Math.floor(Math.random() * 16).toString(),
+    speed: Math.floor(Math.random() * 16).toString(),
+    special: Math.floor(Math.random() * 16).toString(),
   }
 }
 
@@ -65,53 +65,46 @@ export function generateIVs(): {
  * Generates initial EVs for a level 1 Pokémon in Pokémon Red and Blue.
  * Since the Pokémon has not battled, all EVs start at 0.
  *
- * @returns { { hp: number, attack: number, defense: number, speed: number, special: number } }
+ * @returns { { hp: string, attack: string, defense: string, speed: string, special: string } }
  * An object containing the initial EVs (0) for each stat.
  */
 export function generateInitialEVs(): {
-  hp: number
-  attack: number
-  defense: number
-  speed: number
-  special: number
+  hp: string
+  attack: string
+  defense: string
+  speed: string
+  special: string
 } {
   return {
-    hp: 0, // Initial EVs for a level 1 Pokémon that hasn't battled
-    attack: 0,
-    defense: 0,
-    speed: 0,
-    special: 0,
+    hp: '0', // Initial EVs as a string
+    attack: '0',
+    defense: '0',
+    speed: '0',
+    special: '0',
   }
 }
 
 type EVs = {
-  hp: number
-  attack: number
-  defense: number
-  speed: number
-  special: number
-  [key: string]: number // Adding an index signature
+  hp: string
+  attack: string
+  defense: string
+  speed: string
+  special: string
+  [key: string]: string // Updating the index signature to reflect string values
 }
+
 /**
  * Updates the EVs of a Pokémon after a training session.
  * In the original Pokémon Red/Blue, EVs are gained through battling.
  * This function simulates gaining EVs through a simulated training session,
- * with each session providing a random increase to one or more stats.
+ * with each session providing a random increase to one or more stats as strings.
  * There are caps for each stat to prevent over-inflation, aligning with
  * the mechanics from the original games where the total EVs cannot exceed certain limits.
  *
- * @param {Object} currentEVs - The current EVs of the Pokémon.
- * @returns {Object} The updated EVs after the training session.
+ * @param {EVs} currentEVs - The current EVs of the Pokémon, with each value as a string.
+ * @returns {EVs} The updated EVs after the training session, with each value as a string.
  */
-const updateEVs = (
-  currentEVs: EVs,
-): {
-  hp: number
-  attack: number
-  defense: number
-  speed: number
-  special: number
-} => {
+const updateEVs = (currentEVs: EVs): EVs => {
   // The maximum EVs a single stat can have
   const maxEV = 65535
   // The total EV gain from a training session can be a small random value, for simplicity
@@ -121,11 +114,12 @@ const updateEVs = (
   const stats = ['hp', 'attack', 'defense', 'speed', 'special']
   const statToIncrease = stats[Math.floor(Math.random() * stats.length)]
 
-  // Update the chosen stat with EV gain, ensuring it does not exceed the maxEV limit
+  // Convert the current EV from string to number for calculation, then update the stat with EV gain, ensuring it does not exceed the maxEV limit
+  const currentStatValue = parseInt(currentEVs[statToIncrease], 10)
   currentEVs[statToIncrease] = Math.min(
-    currentEVs[statToIncrease] + evGain,
+    currentStatValue + evGain,
     maxEV,
-  )
+  ).toString()
 
   return currentEVs
 }

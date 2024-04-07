@@ -1,12 +1,12 @@
 {
   "contractInputs": "",
-  "op": "create",
+  "op": "initialize",
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "{\"name\":\"Battle\",\"symbol\":\"BATTLE\",\"collection\":\"pokemon-battle\",\"totalSupply\":\"100000\",\"initializedSupply\":\"1\",\"imgUrl\":\"https://pbs.twimg.com/profile_images/1765199894539583488/RUiZn7jT_400x400.jpg\"}",
+    "transactionInputs": "{\"pokemon1\":{\"currHp\":\"100\",\"tokenId\":\"0x0000000000000000000000000000000000000000000000000de0b6b3a7640000\",\"name\":\"BULBASAUR\",\"hp\":\"100\",\"moves\":[{\"name\":\"mega-punch\",\"pp\":20,\"power\":80,\"type\":\"normal\"},{\"name\":\"mega-kick\",\"pp\":5,\"power\":120,\"type\":\"normal\"},{\"name\":\"tackle\",\"pp\":35,\"power\":40,\"type\":\"normal\"},{\"name\":\"body-slam\",\"pp\":15,\"power\":85,\"type\":\"normal\"}]},\"pokemon2\":{\"currHp\":\"100\",\"tokenId\":\"0x0000000000000000000000000000000000000000000000000de0b6b3a7640000\",\"name\":\"BULBASAUR\",\"hp\":\"100\",\"moves\":[{\"name\":\"mega-punch\",\"pp\":20,\"power\":80,\"type\":\"normal\"},{\"name\":\"mega-kick\",\"pp\":5,\"power\":120,\"type\":\"normal\"},{\"name\":\"tackle\",\"pp\":35,\"power\":40,\"type\":\"normal\"},{\"name\":\"body-slam\",\"pp\":15,\"power\":85,\"type\":\"normal\"}]}}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
-    "op": "create",
+    "op": "initialize",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "r": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     "s": "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",

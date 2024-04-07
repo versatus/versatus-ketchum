@@ -1,15 +1,21 @@
 import {
+  Address,
   AddressOrNamespace,
   buildCreateInstruction,
   buildProgramUpdateField,
   buildTokenDistributionInstruction,
+  buildTokenUpdateField,
   buildUpdateInstruction,
   ComputeInputs,
+  formatHexToAmount,
   Outputs,
+  parseProgramInfo,
+  parseTxInputs,
   Program,
   ProgramUpdate,
   THIS,
   TokenOrProgramUpdate,
+  TokenUpdate,
   validate,
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'
@@ -20,12 +26,12 @@ class PokemonBattleProgram extends Program {
     // Bind all method strategies to this instance
     Object.assign(this.methodStrategies, {
       acceptBattleInvitation: this.acceptBattleInvitation.bind(this),
+      attack: this.attack.bind(this),
       placeBet: this.placeBet.bind(this),
       startBattle: this.startBattle.bind(this),
-      executeMove: this.executeMove.bind(this),
+      initialize: this.initialize.bind(this),
       calculateDamage: this.calculateDamage.bind(this),
       determineWinner: this.determineWinner.bind(this),
-      // settleBets: this.settleBets.bind(this),
     })
   }
 
@@ -51,9 +57,14 @@ class PokemonBattleProgram extends Program {
 
       // data
       const imgUrl = txInputs?.imgUrl
-      const imgUrls = txInputs?.imgUrls
       const collection = txInputs?.collection
       const methods = 'approve,create,burn,mint,update'
+
+      validate(collection, 'missing collection')
+      validate(
+        parseInt(initializedSupply) <= parseInt(totalSupply),
+        'invalid supply',
+      )
 
       const metadataStr = validateAndCreateJsonString({
         symbol,
@@ -71,18 +82,8 @@ class PokemonBattleProgram extends Program {
       const dataValues = {
         type: 'non-fungible',
         imgUrl,
-        collection,
         methods,
       } as Record<string, string>
-
-      // if we have an array of imgUrls, we'll add them here
-      if (imgUrls) {
-        const parsed = imgUrls
-        if (!Array.isArray(parsed)) {
-          throw new Error('imgUrls must be an array')
-        }
-        dataValues.imgUrls = JSON.stringify(parsed)
-      }
 
       const dataStr = validateAndCreateJsonString(dataValues)
 
@@ -128,6 +129,74 @@ class PokemonBattleProgram extends Program {
     }
   }
 
+  damageTest(computeInputs: ComputeInputs) {
+    try {
+      const txInputs = parseTxInputs(computeInputs)
+      const { trainerAddress, pokemonAddress, damage, currHp } = txInputs
+
+      let newHp = String(
+        parseInt(currHp) - parseInt(damage) > 0
+          ? parseInt(currHp) - parseInt(damage)
+          : '0',
+      )
+      const dataUpdate = { currHp: newHp }
+
+      const dataStr = validateAndCreateJsonString(dataUpdate)
+
+      const pokemon1Update = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(new Address(trainerAddress)),
+            new AddressOrNamespace(new Address(pokemonAddress)),
+            [
+              buildTokenUpdateField({
+                field: 'data',
+                value: dataStr,
+                action: 'extend',
+              }),
+            ],
+          ),
+        ),
+      })
+      return new Outputs(computeInputs, [pokemon1Update]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
+  initialize(computeInputs: ComputeInputs) {
+    try {
+      const txInputs = parseTxInputs(computeInputs)
+      const { pokemon1, pokemon2 } = txInputs
+
+      const dataValues = {
+        type: 'non-fungible',
+        pokemon1: JSON.stringify(pokemon1),
+        pokemon2: JSON.stringify(pokemon2),
+      } as Record<string, string>
+
+      const dataStr = validateAndCreateJsonString(dataValues)
+
+      const addProgramData = buildProgramUpdateField({
+        field: 'data',
+        value: dataStr,
+        action: 'extend',
+      })
+
+      const programUpdateInstructions = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'programUpdate',
+          new ProgramUpdate(new AddressOrNamespace(THIS), [addProgramData]),
+        ),
+      })
+
+      return new Outputs(computeInputs, [programUpdateInstructions]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
   placeBet(computeInputs: ComputeInputs) {
     // Method for participants to place bets on the outcome
   }
@@ -136,35 +205,95 @@ class PokemonBattleProgram extends Program {
     // Method to officially start the battle after both acceptances and bet placements
   }
 
+  attack(computeInputs: ComputeInputs) {
+    try {
+      const txInputs = parseTxInputs(computeInputs)
+      const {
+        attackerLevel,
+        attackerAttack,
+        defenderTrainerAddress,
+        defenderPokemonAddress,
+        defenderTypes,
+        defenderCurrHp,
+        defenderDefense,
+        moveType,
+        movePower,
+      } = txInputs
+
+      const damageInflicted = this.executeMove(
+        { type: moveType, power: parseInt(movePower) },
+        { level: parseInt(attackerLevel), attack: parseInt(attackerAttack) },
+        {
+          currentHp: parseInt(defenderCurrHp),
+          types: JSON.parse(defenderTypes),
+          defense: parseInt(defenderDefense),
+        },
+      )
+
+      let newHp = String(
+        parseInt(defenderCurrHp) - Math.floor(damageInflicted) > 0
+          ? parseInt(defenderCurrHp) - Math.floor(damageInflicted)
+          : '0',
+      )
+
+      const dataUpdate = { currHp: newHp }
+      const dataStr = validateAndCreateJsonString(dataUpdate)
+
+      const pokemonUpdate = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(new Address(defenderTrainerAddress)),
+            new AddressOrNamespace(new Address(defenderPokemonAddress)),
+            [
+              buildTokenUpdateField({
+                field: 'data',
+                value: dataStr,
+                action: 'extend',
+              }),
+            ],
+          ),
+        ),
+      })
+
+      return new Outputs(computeInputs, [pokemonUpdate]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
   executeMove(
-    move: { name?: any; type: any; power: number },
+    move: { type: string; power: number },
     attacker: {
-      name?: any
       level: number
       attack: number
     },
-    defender: { currentHp: any; name?: any; types: any; defense: number },
+    defender: { currentHp: number; types: string[]; defense: number },
   ) {
-    // Placeholder for logic to execute a move and apply damage
     const damage = this.calculateDamage(move, attacker, defender)
-    defender.currentHp -= damage // Subtract damage from defender's HP
-    console.log(
-      `${attacker.name} uses ${move.name}! It deals ${damage} damage to ${defender.name}.`,
-    )
-
-    // Check for critical hit, which was previously defined
     const isCritical = this.calculateCriticalHit() === 1.5
-    if (isCritical) {
-      console.log("It's a critical hit!")
-    }
 
-    // Check for effectiveness
-    const effectiveness = this.getTypeEffectiveness(move.type, defender.types)
-    if (effectiveness === 2) {
-      console.log("It's super effective!")
-    } else if (effectiveness === 0.5) {
-      console.log("It's not very effective...")
-    }
+    // TODO: pass these strings back to store in the battle NFT
+    // let attackMessage = `${attacker.name} uses ${move.name}!`
+
+    // if (isCritical) {
+    //   attackMessage += ' A critical hit!'
+    // }
+    //
+    // // Check for effectiveness
+    // const effectiveness = this.getTypeEffectiveness(move.type, defender.types)
+    //
+    // if (effectiveness === 2) {
+    //   attackMessage += " It's super effective!"
+    // } else if (effectiveness === 0.5) {
+    //   attackMessage += " It's not very effective..."
+    // }
+    //
+    // // Log the attack details
+    // console.log(attackMessage)
+
+    // Return the damage inflicted for further processing if necessary
+    return damage
   }
 
   checkFaint(pokemon: { currentHp: number; name: any }) {
@@ -253,9 +382,9 @@ class PokemonBattleProgram extends Program {
   // }
 
   calculateDamage(
-    move: { name?: any; type: any; power: number },
-    attacker: { name?: any; level: number; attack: number },
-    defender: { currentHp?: any; name?: any; types: any; defense: number },
+    move: { type: any; power: number },
+    attacker: { level: number; attack: number },
+    defender: { currentHp?: any; types: any; defense: number },
   ) {
     // Basic damage calculation formula
     const baseDamage =

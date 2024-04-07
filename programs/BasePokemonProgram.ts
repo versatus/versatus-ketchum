@@ -28,7 +28,7 @@ import {
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'
 
-import { generateInitialEVs, generateIVs } from '../lib/formulae'
+import { calculateHP, generateInitialEVs, generateIVs } from '../lib/formulae'
 
 interface EvolutionData {
   id: number
@@ -37,6 +37,7 @@ interface EvolutionData {
   baseStats: string
   imgUrl: string
   moves: string
+  types: string
 }
 
 export class BasePokemonProgram extends Program {
@@ -49,6 +50,7 @@ export class BasePokemonProgram extends Program {
     Object.assign(this.methodStrategies, {
       create: this.create.bind(this),
       catch: this.catch.bind(this),
+      heal: this.heal.bind(this),
       train: this.train.bind(this),
     })
   }
@@ -104,6 +106,26 @@ export class BasePokemonProgram extends Program {
     }
 
     return evolutionData ? evolutionData.moves : '{}'
+  }
+
+  getTypes(level: number): string {
+    // Check if the exact level exists first
+    let evolutionData = this.evolutionMap.get(level)
+
+    // If it doesn't exist, find the next lowest level
+    if (!evolutionData) {
+      let previousLevels = Array.from(this.evolutionMap.keys())
+        .filter(lvl => lvl <= level)
+        .sort((a, b) => b - a) // Sort in descending order
+
+      // Get the closest level that does not exceed the current level
+      let closestLevel = previousLevels.length > 0 ? previousLevels[0] : null
+      if (closestLevel !== null) {
+        evolutionData = this.evolutionMap.get(closestLevel)
+      }
+    }
+
+    return evolutionData ? evolutionData.types : '{}'
   }
 
   getEvolutionData(level: number): EvolutionData | undefined {
@@ -165,6 +187,7 @@ export class BasePokemonProgram extends Program {
       const level = '1'
       const baseStats = this.getBaseStats(parseInt(level))
       const moves = this.getMoves(parseInt(level))
+      const types = this.getTypes(parseInt(level))
       const imgUrl = this.getInitialImageUrl()
       const methods = 'create,catch,train,update'
 
@@ -179,6 +202,7 @@ export class BasePokemonProgram extends Program {
         methods,
         baseStats,
         moves,
+        types,
         level,
         tokenMap: '{}',
       })
@@ -230,14 +254,13 @@ export class BasePokemonProgram extends Program {
       const { transaction, accountInfo } = computeInputs
       const { from } = transaction
       const programInfo = parseProgramInfo(computeInputs)
+      const accountInfoData = accountInfo.programAccountData
+      const baseStats = JSON.parse(accountInfoData?.baseStats)
 
       const data = validate(
         accountInfo?.programAccountData,
         'token missing required data to mint...',
       )
-
-      // const price = parseInt(data.price)
-      // const paymentProgramAddress = data.paymentProgramAddress
 
       const availableTokenIds = validate(
         programInfo?.tokenIds,
@@ -251,11 +274,20 @@ export class BasePokemonProgram extends Program {
         'tokenMap is not valid',
       )
 
-      const ivs = JSON.stringify(generateIVs())
-      const evs = JSON.stringify(generateInitialEVs())
+      const ivs = generateIVs()
+      const evs = generateInitialEVs()
 
       const tokenIdStr = parseInt(
         formatHexToAmount(availableTokenIds[0]),
+      ).toString()
+
+      const level = '1'
+
+      const currHp = calculateHP(
+        parseInt(baseStats.hp),
+        parseInt(ivs.hp),
+        parseInt(evs.hp),
+        parseInt(level),
       ).toString()
 
       tokenMap[tokenIdStr] = {
@@ -263,13 +295,17 @@ export class BasePokemonProgram extends Program {
         imgUrl: data.imgUrl,
         level: '1',
         exp: '0',
+        baseStats: baseStats,
+        currHp: currHp,
         ivs,
         evs,
-        moves: data.moves,
+        moves: JSON.parse(data.moves),
+        types: JSON.parse(data.types),
       }
 
       const dataStr = validateAndCreateJsonString({
         tokenMap: JSON.stringify(tokenMap),
+        currHp,
       })
 
       const updateCaughtPokemonTokenData = buildTokenUpdateField({
@@ -289,17 +325,6 @@ export class BasePokemonProgram extends Program {
         ),
       })
 
-      // const transferToProgram = buildTransferInstruction({
-      //   from: from,
-      //   to: 'this',
-      //   tokenAddress: paymentProgramAddress,
-      //   tokenIds: tokenIds,
-      // })
-
-      // if (Math.random() < 0.5) {
-      //   return new Outputs(computeInputs, [transferToProgram]).toJson()
-      // }
-
       const transferToCaller = buildTransferInstruction({
         from: THIS,
         to: from,
@@ -312,6 +337,46 @@ export class BasePokemonProgram extends Program {
         transferToCaller,
         caughtPokemonInstructions,
       ]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+  heal(computeInputs: ComputeInputs) {
+    try {
+      const { transaction, accountInfo } = computeInputs
+      const { from } = transaction
+      const txInputs = parseTxInputs(computeInputs)
+      const { baseHp, ivHp, evHp, level } = txInputs
+
+      const currHp = calculateHP(
+        parseInt(baseHp),
+        parseInt(ivHp),
+        parseInt(evHp),
+        parseInt(level),
+      )
+
+      const dataStr = validateAndCreateJsonString({
+        currHp: currHp.toString(),
+      })
+
+      const healInstruction = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(new Address(from)),
+            new AddressOrNamespace(new Address(THIS)),
+            [
+              buildTokenUpdateField({
+                field: 'data',
+                value: dataStr,
+                action: 'extend',
+              }),
+            ],
+          ),
+        ),
+      })
+
+      return new Outputs(computeInputs, [healInstruction]).toJson()
     } catch (e) {
       throw e
     }

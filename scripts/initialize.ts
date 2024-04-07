@@ -25,12 +25,12 @@ interface Move {
 }
 
 type ConvertedStats = {
-  hp: number
-  attack: number
-  defense: number
-  spAtk: number
-  spDef: number
-  speed: number
+  hp: string
+  attack: string
+  defense: string
+  spAtk: string
+  spDef: string
+  speed: string
 }
 
 interface EvolutionData {
@@ -40,6 +40,7 @@ interface EvolutionData {
   baseStats: string
   imgUrl: string
   moves: string
+  types: string
 }
 
 const getPokemon = async (pokemonNameOrId: string | number) => {
@@ -48,7 +49,7 @@ const getPokemon = async (pokemonNameOrId: string | number) => {
       `https://pokeapi.co/api/v2/pokemon/${pokemonNameOrId}`,
     )
     const pokemon = response.data
-    const { id, name, stats, sprites, moves } = pokemon
+    const { id, name, stats, sprites, moves, types } = pokemon
 
     const convertedStats = convertStats(stats)
 
@@ -60,12 +61,17 @@ const getPokemon = async (pokemonNameOrId: string | number) => {
     // @ts-ignore
     const movesData: Move[] = await buildMoves(moves)
 
+    const typesData = types.map(
+      (type: { type: { name: string } }) => type.type.name,
+    )
+
     return {
       id,
       name,
       symbol: name.toUpperCase(),
       baseStats,
       imgUrl,
+      types: JSON.stringify(typesData),
       moves: JSON.stringify(movesData),
     } as EvolutionData
   } catch (error) {
@@ -86,8 +92,8 @@ const buildMoves = async (moves: any[]) => {
     const { pp, power, type } = await fetchPokeApiData(move.move.url)
     updatedMoves.push({
       name: move.move.name,
-      pp,
-      power,
+      pp: pp?.toString() ?? '--',
+      power: power?.toString() ?? '--',
       type: type.name,
     })
   }
@@ -98,7 +104,7 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
   try {
     const pokemon = await getPokemon(pokemonNameOrId)
     if (!pokemon) throw new Error(`couldn't find ${pokemonNameOrId}`)
-    const { id, name, baseStats, symbol, imgUrl, moves } = pokemon
+    const { id, name, baseStats, symbol, imgUrl, moves, types } = pokemon
     const specie = await fetchPokemonSpecies(id)
     const { evolution_chain: evoChain } = specie
     const { chain } = await fetchPokeApiData(evoChain.url)
@@ -112,6 +118,7 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
         imgUrl,
         level: '1',
         moves,
+        types,
       },
     }
 
@@ -128,8 +135,6 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
       ] = await getPokemon(chain.evolves_to[0].evolves_to[0].species.name)
     }
 
-    console.log(JSON.stringify(builtPokemon))
-
     return builtPokemon
   } catch (e) {
     console.log(pokemonNameOrId)
@@ -145,22 +150,22 @@ function convertStats(stats: Stat[]): ConvertedStats {
 
     switch (stat.stat.name) {
       case 'hp':
-        convertedStats.hp = value
+        convertedStats.hp = value.toString()
         break
       case 'attack':
-        convertedStats.attack = value
+        convertedStats.attack = value.toString()
         break
       case 'defense':
-        convertedStats.defense = value
+        convertedStats.defense = value.toString()
         break
       case 'special-attack':
-        convertedStats.spAtk = value
+        convertedStats.spAtk = value.toString()
         break
       case 'special-defense':
-        convertedStats.spDef = value
+        convertedStats.spDef = value.toString()
         break
       case 'speed':
-        convertedStats.speed = value
+        convertedStats.speed = value.toString()
         break
       default:
         // Handle any unexpected stats here
@@ -214,18 +219,8 @@ async function fetchMultiplePokemons(
 async function buildPokemonClass(pokemonName: string) {
   const buildCommand = `lasrctl build programs/${pokemonName}.ts`
   try {
-    const result = await runCommand(buildCommand)
+    await runCommand(buildCommand)
     console.log(`Build successful for ${pokemonName}`)
-  } catch (error) {
-    console.error(`Build failed for ${pokemonName}: `, error)
-  }
-}
-
-async function testPokemonClass(pokemonName: string) {
-  const buildCommand = `lasrctl test -p ${pokemonName} -i inputs`
-  try {
-    const result = await runCommand(buildCommand)
-    console.log(`Build successful for ${pokemonName}: `, result)
   } catch (error) {
     console.error(`Build failed for ${pokemonName}: `, error)
   }
@@ -273,10 +268,8 @@ async function initializePokemons(pokemonToInitialize: string[]) {
     console.log('Pokemons fetched')
     for (const pokemonDataString of pokemonDataList) {
       const pokemonData = JSON.parse(pokemonDataString)
-      const pokemonName = pokemonData[Object.keys(pokemonData)[0]].name // Assuming '0' is always the first key
-      console.log(
-        `rm -rf ./programs/${pokemonName}.ts ./build/lib/${pokemonName}.js ./build/programs/${pokemonName}.js`,
-      )
+      const pokemonName = pokemonData[Object.keys(pokemonData)[0]].name
+
       try {
         await runCommand(`rm -rf ./programs/${pokemonName}.ts`)
         await runCommand(`./build/lib/${pokemonName}.js`)
@@ -284,8 +277,6 @@ async function initializePokemons(pokemonToInitialize: string[]) {
       } catch (e) {
         console.log('no files found to delete')
       }
-
-      console.log('DELTED SOME FILES')
 
       const createCommand = `./scripts/createPokemonClass.sh programs/BasePokemonProgram.ts '${JSON.stringify(pokemonData)}' ${pokemonName}`
       try {
@@ -333,15 +324,15 @@ async function initializePokemons(pokemonToInitialize: string[]) {
 }
 
 initializePokemons([
-  // 'bulbasaur',
-  // 'charmander',
-  // 'squirtle',
-  // 'caterpie',
-  // 'weedle',
-  // 'pidgey',
-  // 'rattata',
-  // 'spearow',
-  // 'ekans',
+  'bulbasaur',
+  'charmander',
+  'squirtle',
+  'caterpie',
+  'weedle',
+  'pidgey',
+  'rattata',
+  'spearow',
+  'ekans',
   'pichu',
   'sandshrew',
   'nidoran',
@@ -359,28 +350,80 @@ initializePokemons([
   'growlithe',
   'poliwag',
   'abra',
-  // 'machop',
-  // 'bellsprout',
-  // 'tentacool',
-  // 'geodude',
-  // 'ponyta',
-  // 'slowpoke',
-  // 'magnemite',
-  // 'doduo',
-  // 'seel',
-  // 'grimer',
-  // 'shellder',
-  // 'gastly',
-  // 'drowzee',
-  // 'krabby',
-  // 'voltorb',
-  // 'exeggcute',
-  // 'cubone',
-  // 'koffing',
-  // 'rhyhorn',
-  // 'horsea',
-  // 'goldeen',
-  // 'staryu',
-  // 'magikarp',
-  // 'eevee',
+  'machop',
+  'bellsprout',
+  'tentacool',
+  'geodude',
+  'ponyta',
+  'slowpoke',
+  'magnemite',
+  'doduo',
+  'seel',
+  'grimer',
+  'shellder',
+  'gastly',
+  'drowzee',
+  'krabby',
+  'voltorb',
+  'exeggcute',
+  'cubone',
+  'koffing',
+  'rhyhorn',
+  'horsea',
+  'goldeen',
+  'staryu',
+  'magikarp',
+  'eevee',
 ])
+
+const evYieldsBySpecies = {
+  bulbasaur: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  charmander: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  squirtle: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  caterpie: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 },
+  weedle: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  pidgey: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  rattata: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  spearow: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  ekans: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 },
+  sandshrew: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  nidoran: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 }, // Applies to both Nidoran♀ and Nidoran♂
+  clefairy: { hp: 2, attack: 0, defense: 0, speed: 0, special: 0 },
+  vulpix: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  jigglypuff: { hp: 2, attack: 0, defense: 0, speed: 0, special: 0 },
+  zubat: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  oddish: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  paras: { hp: 0, attack: 1, defense: 0, speed: 0, special: 0 },
+  venonat: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  diglett: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  meowth: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  psyduck: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  mankey: { hp: 0, attack: 1, defense: 0, speed: 0, special: 0 },
+  growlithe: { hp: 0, attack: 1, defense: 0, speed: 0, special: 0 },
+  poliwag: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  abra: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  machop: { hp: 0, attack: 1, defense: 0, speed: 0, special: 0 },
+  bellsprout: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  tentacool: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  geodude: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  ponyta: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  slowpoke: { hp: 1, attack: 0, defense: 1, speed: 0, special: 0 },
+  magnemite: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  doduo: { hp: 0, attack: 1, defense: 0, speed: 0, special: 0 },
+  seel: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  grimer: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 },
+  shellder: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  gastly: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  drowzee: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  krabby: { hp: 0, attack: 1, defense: 0, speed: 0, special: 0 },
+  voltorb: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  exeggcute: { hp: 1, attack: 0, defense: 0, speed: 0, special: 1 },
+  cubone: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  koffing: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 },
+  rhyhorn: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
+  horsea: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  goldeen: { hp: 0, attack: 1, defense: 0, speed: 0, special: 0 },
+  staryu: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+  magikarp: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
+  eevee: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
+}
