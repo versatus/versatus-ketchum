@@ -4,7 +4,7 @@
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "{\"trainer1Address\":  \"0x482830d7655fb8465a43844fc1530a7713781b49\",\"pokemon1Speed\":\"10\",\"pokemon1Address\":  \"0x482830d7655fb8465a43844fc1530a7713781b49\",\"pokemon1TokenId\":  \"0x1\",\"trainer2Address\":  \"0x482830d7655fb8465a43844fc1530a7713781b49\",\"pokemon2Address\":  \"0x482830d7655fb8465a43844fc1530a7713781b49\",\"pokemon2TokenId\": \"0x2\"}",
+    "transactionInputs": "{\"trainer1Address\":\"0x482830d7655fb8465a43844fc1530a7713781b49\",\"pokemon1Speed\":\"10\",\"pokemon1Address\":  \"0x482830d7655fb8465a43844fc1530a7713781b49\",\"pokemon1TokenId\":  \"0x1\"}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
     "op": "initialize",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
@@ -40,7 +40,7 @@
         "allowance": {},
         "approvals": {},
         "data": {
-          "battles": "{\"0\": {},\"1\":{}, \"2\":{}}"
+          "battles": "{\"0\": {}}"
         },
         "status": "free"
       }

@@ -16,6 +16,7 @@ import {
   THIS,
   TokenOrProgramUpdate,
   TokenUpdate,
+  TokenUpdateBuilder,
   validate,
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'
@@ -25,18 +26,75 @@ class PokemonBattleProgram extends Program {
     super()
     // Bind all method strategies to this instance
     Object.assign(this.methodStrategies, {
-      acceptBattleInvitation: this.acceptBattleInvitation.bind(this),
+      addPokemon: this.addPokemon.bind(this),
+      approveTrainer: this.approveTrainer.bind(this),
+      acceptBattle: this.acceptBattle.bind(this),
+      cancelBattle: this.cancelBattle.bind(this),
+      declineBattle: this.declineBattle.bind(this),
       attack: this.attack.bind(this),
       placeBet: this.placeBet.bind(this),
       startBattle: this.startBattle.bind(this),
       initialize: this.initialize.bind(this),
       calculateDamage: this.calculateDamage.bind(this),
-      determineWinner: this.determineWinner.bind(this),
     })
   }
 
-  acceptBattleInvitation(computeInputs: ComputeInputs) {
-    // Method to accept battle invitations by both Pokémon
+  approveTrainer(computeInputs: ComputeInputs) {
+    try {
+      const { transaction } = computeInputs
+      const { transactionInputs, programId } = transaction
+      const programAddress = new AddressOrNamespace(new Address(programId))
+
+      const update = buildTokenUpdateField({
+        field: 'approvals',
+        value: JSON.parse(transactionInputs),
+        action: 'extend',
+      })
+
+      const tokenUpdate = new TokenUpdate(
+        new AddressOrNamespace(THIS),
+        new AddressOrNamespace(THIS),
+        [update],
+      )
+      const tokenOrProgramUpdate = new TokenOrProgramUpdate(
+        'tokenUpdate',
+        tokenUpdate,
+      )
+      const updateInstruction = new TokenUpdateBuilder()
+        .addTokenAddress(programAddress)
+        .addUpdateField(tokenOrProgramUpdate)
+        .build()
+
+      return new Outputs(computeInputs, [updateInstruction]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
+  addPokemon(computeInputs: ComputeInputs) {
+    try {
+      const txInputs = parseTxInputs(computeInputs)
+      const { pokemonAddress } = txInputs
+
+      const addLinkedProgram = buildProgramUpdateField({
+        field: 'linkedPrograms',
+        value: pokemonAddress,
+        action: 'insert',
+      })
+
+      const addPokemonToLinkedProgramInstruction = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'programUpdate',
+          new ProgramUpdate(new AddressOrNamespace(THIS), [addLinkedProgram]),
+        ),
+      })
+
+      return new Outputs(computeInputs, [
+        addPokemonToLinkedProgramInstruction,
+      ]).toJson()
+    } catch (e) {
+      throw e
+    }
   }
 
   create(computeInputs: ComputeInputs) {
@@ -53,7 +111,8 @@ class PokemonBattleProgram extends Program {
       const initializedSupply = txInputs?.initializedSupply
       const symbol = txInputs?.symbol
       const name = txInputs?.name
-      const recipientAddress = txInputs?.to ?? transaction.to
+
+      const recipientAddress = txInputs?.recipientAddress ?? transaction.to
 
       // data
       const imgUrl = txInputs?.imgUrl
@@ -79,17 +138,22 @@ class PokemonBattleProgram extends Program {
         action: 'extend',
       })
 
-      const dataValues = {
+      const programDataValues = {
         type: 'non-fungible',
         imgUrl,
         methods,
       } as Record<string, string>
 
-      const dataStr = validateAndCreateJsonString(dataValues)
+      const tokenDataValues = {
+        battles: '{}',
+      } as Record<string, string>
+
+      const programDataStr = validateAndCreateJsonString(programDataValues)
+      const tokenDataStr = validateAndCreateJsonString(tokenDataValues)
 
       const addProgramData = buildProgramUpdateField({
         field: 'data',
-        value: dataStr,
+        value: programDataStr,
         action: 'extend',
       })
 
@@ -103,10 +167,17 @@ class PokemonBattleProgram extends Program {
         ),
       })
 
+      const addDataToToken = buildTokenUpdateField({
+        field: 'data',
+        value: tokenDataStr,
+        action: 'extend',
+      })
+
       const distributionInstruction = buildTokenDistributionInstruction({
         programId: THIS,
         initializedSupply,
         to: recipientAddress,
+        tokenUpdates: [addDataToToken],
         nonFungible: true,
       })
 
@@ -117,7 +188,7 @@ class PokemonBattleProgram extends Program {
         programId: THIS,
         programOwner: from,
         programNamespace: THIS,
-        distributionInstruction,
+        distributionInstruction: distributionInstruction,
       })
 
       return new Outputs(computeInputs, [
@@ -165,20 +236,68 @@ class PokemonBattleProgram extends Program {
     }
   }
 
-  initialize(computeInputs: ComputeInputs) {
+  acceptBattle(computeInputs: ComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
-      const { pokemon1, pokemon2 } = txInputs
+      const programTokenInfo = parseProgramInfo(computeInputs)
+      let {
+        trainer2Address,
+        pokemon2Address,
+        pokemon2TokenId,
+        pokemon2Speed,
+        battleId,
+      } = txInputs
 
-      const dataValues = {
-        type: 'non-fungible',
-        pokemon1: JSON.stringify(pokemon1),
-        pokemon2: JSON.stringify(pokemon2),
-      } as Record<string, string>
+      const currBattleState = JSON.parse(programTokenInfo?.data?.battles)
+      const currBattle = currBattleState[battleId]
+      currBattle.pokemon2Speed = pokemon2Speed
 
-      const dataStr = validateAndCreateJsonString(dataValues)
+      if (parseInt(currBattle.pokemon1Speed) < parseInt(pokemon2Speed)) {
+        currBattle.firstMove = `${pokemon2Address}:${pokemon2TokenId}`
+      }
 
-      const addProgramData = buildProgramUpdateField({
+      if (currBattle.battleType === 'open') {
+        validate(
+          trainer2Address,
+          'missing trainer2Address for open battle acceptance',
+        )
+        validate(
+          pokemon2Address,
+          'missing pokemon2Address for open battle acceptance',
+        )
+        validate(
+          pokemon2TokenId,
+          'missing pokemon2TokenId for open battle acceptance',
+        )
+      } else {
+        trainer2Address = currBattle.trainer2Address
+        pokemon2Address = currBattle.pokemon2Address
+        pokemon2TokenId = currBattle.pokemon2TokenId
+      }
+
+      // validate(
+      //   trainer2Address.toLowerCase() === from.toLowerCase(),
+      //   'incorrect trainer2Address',
+      // )
+
+      const battleValues = {
+        ...currBattle,
+        battleState: 'betting',
+        trainer2Address: trainer2Address ?? '',
+        pokemon2Address: pokemon2Address ?? '',
+        pokemon2TokenId: pokemon2TokenId ?? '',
+      } as Record<string, any>
+
+      const dataObj = {
+        battles: JSON.stringify({
+          ...currBattleState,
+          [battleId]: battleValues,
+        }),
+      }
+
+      const dataStr = validateAndCreateJsonString(dataObj)
+
+      const addBattle = buildTokenUpdateField({
         field: 'data',
         value: dataStr,
         action: 'extend',
@@ -186,8 +305,190 @@ class PokemonBattleProgram extends Program {
 
       const programUpdateInstructions = buildUpdateInstruction({
         update: new TokenOrProgramUpdate(
-          'programUpdate',
-          new ProgramUpdate(new AddressOrNamespace(THIS), [addProgramData]),
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(THIS),
+            new AddressOrNamespace(THIS),
+            [addBattle],
+          ),
+        ),
+      })
+
+      return new Outputs(computeInputs, [programUpdateInstructions]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
+  cancelBattle(computeInputs: ComputeInputs) {
+    try {
+      const txInputs = parseTxInputs(computeInputs)
+      const programInfo = parseProgramInfo(computeInputs)
+      const { from } = computeInputs.transaction
+      let { battleId } = txInputs
+
+      const currBattleState = JSON.parse(programInfo?.data?.battles)
+      const currBattle = currBattleState[battleId]
+
+      validate(
+        currBattle.trainer1Address.toLowerCase() === from.toLowerCase(),
+        'incorrect trainer1Address',
+      )
+
+      const battleValues = {
+        ...currBattle,
+        battleState: 'canceled',
+      } as Record<string, any>
+
+      const dataObj = {
+        battles: JSON.stringify({
+          ...currBattleState,
+          [battleId]: battleValues,
+        }),
+      }
+
+      const dataStr = validateAndCreateJsonString(dataObj)
+
+      const addBattle = buildTokenUpdateField({
+        field: 'data',
+        value: dataStr,
+        action: 'extend',
+      })
+
+      const programUpdateInstructions = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(THIS),
+            new AddressOrNamespace(THIS),
+            [addBattle],
+          ),
+        ),
+      })
+
+      return new Outputs(computeInputs, [programUpdateInstructions]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
+  declineBattle(computeInputs: ComputeInputs) {
+    try {
+      const txInputs = parseTxInputs(computeInputs)
+      const programInfo = parseProgramInfo(computeInputs)
+      const { from } = computeInputs.transaction
+      let { battleId } = txInputs
+
+      const currBattleState = JSON.parse(programInfo?.data?.battles)
+      const currBattle = currBattleState[battleId]
+
+      validate(
+        currBattle.trainer2Address.toLowerCase() === from.toLowerCase(),
+        'incorrect trainer2Address',
+      )
+
+      const battleValues = {
+        ...currBattle,
+        battleState: 'declined',
+      } as Record<string, any>
+
+      const dataObj = {
+        battles: JSON.stringify({
+          ...currBattleState,
+          [battleId]: battleValues,
+        }),
+      }
+
+      const dataStr = validateAndCreateJsonString(dataObj)
+
+      const addBattle = buildTokenUpdateField({
+        field: 'data',
+        value: dataStr,
+        action: 'extend',
+      })
+
+      const programUpdateInstructions = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(THIS),
+            new AddressOrNamespace(THIS),
+            [addBattle],
+          ),
+        ),
+      })
+
+      return new Outputs(computeInputs, [programUpdateInstructions]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
+  initialize(computeInputs: ComputeInputs) {
+    try {
+      const txInputs = parseTxInputs(computeInputs)
+      const programInfo = parseProgramInfo(computeInputs)
+
+      const {
+        trainer1Address,
+        pokemon1Address,
+        pokemon1TokenId,
+        pokemon1Speed,
+        trainer2Address,
+        pokemon2Address,
+        pokemon2TokenId,
+      } = txInputs
+
+      const currBattleState = JSON.parse(programInfo?.data?.battles)
+
+      const currBattleKeys = Object.keys(currBattleState)
+
+      validate(trainer1Address, 'missing trainer1Address')
+      validate(pokemon1Address, 'missing pokemon1Address')
+      validate(pokemon1TokenId, 'missing pokemon1TokenId')
+      validate(pokemon1Speed, 'missing pokemon1Speed')
+
+      const battleType = trainer2Address ? 'closed' : 'open'
+
+      const battleValues = {
+        battleType,
+        battleState: 'initialized',
+        trainer1Address: trainer1Address,
+        pokemon1Address: pokemon1Address,
+        pokemon1TokenId: pokemon1TokenId,
+        pokemon1Speed: pokemon1Speed,
+        trainer2Address: trainer2Address ?? '',
+        pokemon2Address: pokemon2Address ?? '',
+        pokemon2TokenId: pokemon2TokenId ?? '',
+        pokemon2Speed: '',
+        firstMove: `${pokemon1Address}:${pokemon1TokenId}`,
+        turns: [],
+        timeStamp: Date.now(),
+      } as Record<string, any>
+
+      const dataObj = {
+        battles: JSON.stringify({
+          ...currBattleState,
+          [currBattleKeys.length.toString()]: battleValues,
+        }),
+      }
+
+      const dataStr = validateAndCreateJsonString(dataObj)
+
+      const addBattle = buildTokenUpdateField({
+        field: 'data',
+        value: dataStr,
+        action: 'extend',
+      })
+
+      const programUpdateInstructions = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(THIS),
+            new AddressOrNamespace(THIS),
+            [addBattle],
+          ),
         ),
       })
 
@@ -208,22 +509,53 @@ class PokemonBattleProgram extends Program {
   attack(computeInputs: ComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
+      const programInfo = parseProgramInfo(computeInputs)
+
       const {
+        battleId,
         attackerLevel,
         attackerAttack,
+        attackerName,
         defenderTrainerAddress,
         defenderPokemonAddress,
         defenderTypes,
         defenderCurrHp,
         defenderDefense,
+        defenderName,
+        moveName,
         moveType,
         movePower,
       } = txInputs
 
-      const damageInflicted = this.executeMove(
-        { type: moveType, power: parseInt(movePower) },
-        { level: parseInt(attackerLevel), attack: parseInt(attackerAttack) },
+      validateAndCreateJsonString({
+        battleId,
+        attackerLevel,
+        attackerAttack,
+        attackerName,
+        defenderTrainerAddress,
+        defenderPokemonAddress,
+        defenderTypes,
+        defenderCurrHp,
+        defenderDefense,
+        defenderName,
+        moveName,
+        moveType,
+        movePower,
+      })
+
+      const currBattlesState = JSON.parse(programInfo?.data?.battles)
+
+      const currBattle = currBattlesState[battleId]
+
+      const { damage: damageInflicted, message } = this.executeMove(
+        { name: moveName, type: moveType, power: parseInt(movePower) },
         {
+          name: attackerName,
+          level: parseInt(attackerLevel),
+          attack: parseInt(attackerAttack),
+        },
+        {
+          name: defenderName,
           currentHp: parseInt(defenderCurrHp),
           types: JSON.parse(defenderTypes),
           defense: parseInt(defenderDefense),
@@ -256,89 +588,107 @@ class PokemonBattleProgram extends Program {
         ),
       })
 
-      return new Outputs(computeInputs, [pokemonUpdate]).toJson()
+      let battleState = 'battling'
+      if (parseInt(newHp) === 0) {
+        battleState = 'finished'
+        // add new evs to the winner
+      }
+
+      const newTurns = currBattle.turns
+
+      newTurns.push({
+        attacker: {
+          name: attackerName,
+          level: attackerLevel,
+          attack: attackerAttack,
+        },
+        defender: {
+          name: defenderName,
+          pokemonAddress: defenderPokemonAddress,
+          currHp: newHp,
+          types: JSON.parse(defenderTypes),
+          defense: defenderDefense,
+        },
+        move: {
+          name: moveName,
+          power: movePower,
+          type: moveType,
+        },
+        damage: String(Math.floor(damageInflicted)),
+        message,
+        timeStamp: Date.now(),
+      })
+
+      const updatedBattles = {
+        ...currBattlesState,
+        [battleId]: {
+          ...currBattle,
+          battleState,
+          turns: newTurns,
+        },
+      }
+
+      const battleStateUpdate = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(THIS),
+            new AddressOrNamespace(THIS),
+            [
+              buildTokenUpdateField({
+                field: 'data',
+                value: JSON.stringify({
+                  battles: JSON.stringify(updatedBattles),
+                }),
+                action: 'extend',
+              }),
+            ],
+          ),
+        ),
+      })
+
+      return new Outputs(computeInputs, [
+        pokemonUpdate,
+        battleStateUpdate,
+      ]).toJson()
     } catch (e) {
       throw e
     }
   }
 
   executeMove(
-    move: { type: string; power: number },
+    move: { name: string; type: string; power: number },
     attacker: {
+      name: string
       level: number
       attack: number
     },
-    defender: { currentHp: number; types: string[]; defense: number },
+    defender: {
+      name: string
+      currentHp: number
+      types: string[]
+      defense: number
+    },
   ) {
     const damage = this.calculateDamage(move, attacker, defender)
     const isCritical = this.calculateCriticalHit() === 1.5
 
     // TODO: pass these strings back to store in the battle NFT
-    // let attackMessage = `${attacker.name} uses ${move.name}!`
+    let attackMessage = ``
 
-    // if (isCritical) {
-    //   attackMessage += ' A critical hit!'
-    // }
-    //
-    // // Check for effectiveness
-    // const effectiveness = this.getTypeEffectiveness(move.type, defender.types)
-    //
-    // if (effectiveness === 2) {
-    //   attackMessage += " It's super effective!"
-    // } else if (effectiveness === 0.5) {
-    //   attackMessage += " It's not very effective..."
-    // }
-    //
-    // // Log the attack details
-    // console.log(attackMessage)
-
-    // Return the damage inflicted for further processing if necessary
-    return damage
-  }
-
-  checkFaint(pokemon: { currentHp: number; name: any }) {
-    // Check if the Pokémon has fainted
-    if (pokemon.currentHp <= 0) {
-      console.log(`${pokemon.name} has fainted!`)
-      return true
+    if (isCritical) {
+      attackMessage += 'A critical hit!'
     }
-    return false
-  }
 
-  // simulateTurn() {
-  //   // Determine which Pokémon should act based on their Speed stats
-  //   let firstMover, secondMover
-  //   if (this.pokemon1.speed >= this.pokemon2.speed) {
-  //     firstMover = 'pokemon1'
-  //     secondMover = 'pokemon2'
-  //   } else {
-  //     firstMover = 'pokemon2'
-  //     secondMover = 'pokemon1'
-  //   }
-  //
-  //   // Execute moves based on the determined turn order
-  //   if (!this.executeTurn(firstMover, secondMover)) {
-  //     // If the first move doesn't end the battle, execute the second move
-  //     this.executeTurn(secondMover, firstMover)
-  //   }
-  // }
-  //
-  // executeTurn(attackerKey, defenderKey) {
-  //   const attacker = this[attackerKey]
-  //   const defender = this[defenderKey]
-  //
-  //   const move = this.chooseMove(attacker)
-  //   this.executeMove(move, attacker, defender)
-  //
-  //   if (this.checkFaint(defender)) {
-  //     this.endBattle(attacker)
-  //     return true // Indicate the battle has ended
-  //   }
-  //   return false // Indicate the battle continues
-  // }
-  //
-  determineWinner(computeInputs: ComputeInputs) {
-    // Method to check if a Pokémon has fainted and determine the winner
+    const effectiveness = this.getTypeEffectiveness(move.type, defender.types)
+
+    if (effectiveness === 2) {
+      attackMessage += " It's super effective!"
+    } else if (effectiveness === 0.5) {
+      attackMessage += " It's not very effective..."
+    }
+
+    return { damage, message: attackMessage }
   }
 
   // settleBets(winningPokemonId: number) {

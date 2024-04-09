@@ -10,7 +10,6 @@ import {
 
 import {
   buildCreateInstruction,
-  buildMintInstructions,
   buildProgramUpdateField,
   buildTokenDistributionInstruction,
   buildTokenUpdateField,
@@ -23,7 +22,6 @@ import { TokenOrProgramUpdate } from '@versatus/versatus-javascript'
 import { Outputs } from '@versatus/versatus-javascript'
 
 import {
-  parseAmountToBigInt,
   validate,
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'

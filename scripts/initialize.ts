@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { runCommand } from '../lib/shell'
 import {
+  KETCHUM_BATTLE_ADDRESS,
   KETCHUM_POKEBALL_ADDRESS,
   KETCHUM_PROGRAM_ADDRESS,
   VERSE_PROGRAM_ADDRESS,
@@ -258,6 +259,14 @@ async function registerPokemon(pokemonName: string, programAddress: string) {
   }
 }
 
+async function registerPokemonWithBattleContract(programAddress: string) {
+  const buildCommand = `lasrctl call --inputs '{"pokemonAddress":"${programAddress}"}' --programAddress ${KETCHUM_BATTLE_ADDRESS} --op addPokemon`
+  try {
+    await runCommand(buildCommand)
+    console.log('program added battle program linked')
+  } catch (error) {}
+}
+
 async function initializePokemons(pokemonToInitialize: string[]) {
   try {
     console.log(
@@ -316,6 +325,7 @@ async function initializePokemons(pokemonToInitialize: string[]) {
         `Registering ${pokemonName} with program address: ${programAddress}...`,
       )
       await registerPokemon(pokemonName, programAddress)
+      await registerPokemonWithBattleContract(programAddress)
       console.log('pokemon registered! doing next pokemon')
     }
   } catch (error) {
@@ -327,53 +337,53 @@ initializePokemons([
   'bulbasaur',
   'charmander',
   'squirtle',
-  'caterpie',
-  'weedle',
-  'pidgey',
-  'rattata',
-  'spearow',
-  'ekans',
-  'pichu',
-  'sandshrew',
-  'nidoran',
-  'clefairy',
-  'vulpix',
-  'jigglypuff',
-  'zubat',
-  'oddish',
-  'paras',
-  'venonat',
-  'diglett',
-  'meowth',
-  'psyduck',
-  'mankey',
-  'growlithe',
-  'poliwag',
-  'abra',
-  'machop',
-  'bellsprout',
-  'tentacool',
-  'geodude',
-  'ponyta',
-  'slowpoke',
-  'magnemite',
-  'doduo',
-  'seel',
-  'grimer',
-  'shellder',
-  'gastly',
-  'drowzee',
-  'krabby',
-  'voltorb',
-  'exeggcute',
-  'cubone',
-  'koffing',
-  'rhyhorn',
-  'horsea',
-  'goldeen',
-  'staryu',
-  'magikarp',
-  'eevee',
+  // 'caterpie',
+  // 'weedle',
+  // 'pidgey',
+  // 'rattata',
+  // 'spearow',
+  // 'ekans',
+  // 'pichu',
+  // 'sandshrew',
+  // 'nidoran',
+  // 'clefairy',
+  // 'vulpix',
+  // 'jigglypuff',
+  // 'zubat',
+  // 'oddish',
+  // 'paras',
+  // 'venonat',
+  // 'diglett',
+  // 'meowth',
+  // 'psyduck',
+  // 'mankey',
+  // 'growlithe',
+  // 'poliwag',
+  // 'abra',
+  // 'machop',
+  // 'bellsprout',
+  // 'tentacool',
+  // 'geodude',
+  // 'ponyta',
+  // 'slowpoke',
+  // 'magnemite',
+  // 'doduo',
+  // 'seel',
+  // 'grimer',
+  // 'shellder',
+  // 'gastly',
+  // 'drowzee',
+  // 'krabby',
+  // 'voltorb',
+  // 'exeggcute',
+  // 'cubone',
+  // 'koffing',
+  // 'rhyhorn',
+  // 'horsea',
+  // 'goldeen',
+  // 'staryu',
+  // 'magikarp',
+  // 'eevee',
 ])
 
 const evYieldsBySpecies = {
@@ -387,7 +397,7 @@ const evYieldsBySpecies = {
   spearow: { hp: 0, attack: 0, defense: 0, speed: 1, special: 0 },
   ekans: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 },
   sandshrew: { hp: 0, attack: 0, defense: 1, speed: 0, special: 0 },
-  nidoran: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 }, // Applies to both Nidoran♀ and Nidoran♂
+  nidoran: { hp: 1, attack: 0, defense: 0, speed: 0, special: 0 },
   clefairy: { hp: 2, attack: 0, defense: 0, speed: 0, special: 0 },
   vulpix: { hp: 0, attack: 0, defense: 0, speed: 0, special: 1 },
   jigglypuff: { hp: 2, attack: 0, defense: 0, speed: 0, special: 0 },

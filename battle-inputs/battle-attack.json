@@ -4,7 +4,7 @@
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "{\"defenderTrainerAddress\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"defenderPokemonAddress\":\"0x825e7dc30189bb07ec85bdd4aeff2a77c23768bf\",\"defenderTypes\":\"[\\\"fire\\\"]\",\"defenderCurrHp\":\"15\",\"defenderDefense\":\"7\",\"attackerLevel\":\"3\",\"attackerAttack\":\"8\",\"moveType\":\"normal\",\"movePower\":\"50\"}",
+    "transactionInputs": "{\"battleId\":\"0\",\"moveName\":\"fooooo-bar\",\"defenderTrainerAddress\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"defenderPokemonAddress\":\"0x825e7dc30189bb07ec85bdd4aeff2a77c23768bf\",\"defenderTypes\":\"[\\\"fire\\\"]\",\"defenderCurrHp\":\"15\",\"defenderDefense\":\"7\",\"attackerLevel\":\"3\",\"attackerAttack\":\"8\",\"moveType\":\"normal\",\"movePower\":\"50\"}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
     "op": "attack",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
@@ -50,12 +50,16 @@
         "tokenIds": [],
         "allowance": {},
         "approvals": {},
-        "data": {},
+        "data": {
+          "battles": "{\"0\": {\"battleId\": \"0\", \"defenderTrainerAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\", \"defenderPokemonAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"turns\":[\"testing testing testint\",\"more testing testing testing\"]}}"
+        },
         "status": "free"
       }
     },
     "nonce": "0x000000000000000000000000000000000000000000000000000000000000001c",
-    "programAccountData": {},
+    "programAccountData": {
+      "battles": "{\"0\": {\"battleId\": \"0\", \"defenderTrainerAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\", \"defenderPokemonAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"turns\":\"[]\"}}"
+    },
     "programAccountMetadata": {
       "content_id": "bafyreidhfvw4jiqom72332brsln3micsa4b7grur4rixkwvyrh6u4i3ecy",
       "initializedSupply": "1000000000000000000000000",

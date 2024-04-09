@@ -10,6 +10,7 @@ import {
   formatAmountToHex,
   formatHexToAmount,
   Outputs,
+  parseTxInputs,
   ProgramUpdate,
   THIS,
   TokenOrProgramUpdate,
@@ -24,6 +25,7 @@ class Ketchum extends Program {
     super()
     Object.assign(this.methodStrategies, {
       addPokemon: this.addPokemon.bind(this),
+      addTrainer: this.addTrainer.bind(this),
       create: this.create.bind(this),
     })
   }
@@ -82,6 +84,59 @@ class Ketchum extends Program {
     }
   }
 
+  addTrainer(computeInputs: ComputeInputs) {
+    try {
+      const { transaction } = computeInputs
+      const txInputs = parseTxInputs(computeInputs)
+      const { address, data } = txInputs
+      const currProgramInfo = validate(
+        computeInputs.accountInfo?.programs[transaction.to],
+        'token missing from self...',
+      )
+
+      const tokenData = validate(
+        currProgramInfo?.data,
+        'token missing required data to mint...',
+      )
+
+      const currentTrainers = validate(
+        JSON.parse(tokenData.trainers),
+        'no pokemon found...',
+      )
+
+      const updatedTrainers = {
+        ...currentTrainers,
+        [address]: data,
+      }
+
+      const dataStr = validateAndCreateJsonString({
+        ...tokenData,
+        trainers: JSON.stringify(updatedTrainers),
+      })
+
+      const updatePokemonListTokenData = buildTokenUpdateField({
+        field: 'data',
+        value: dataStr,
+        action: 'extend',
+      })
+
+      const addPokemonToMapInstruction = buildUpdateInstruction({
+        update: new TokenOrProgramUpdate(
+          'tokenUpdate',
+          new TokenUpdate(
+            new AddressOrNamespace(THIS),
+            new AddressOrNamespace(THIS),
+            [updatePokemonListTokenData],
+          ),
+        ),
+      })
+
+      return new Outputs(computeInputs, [addPokemonToMapInstruction]).toJson()
+    } catch (e) {
+      throw e
+    }
+  }
+
   create(computeInputs: ComputeInputs) {
     try {
       const { transaction } = computeInputs
@@ -102,6 +157,7 @@ class Ketchum extends Program {
       // data
       const imgUrl = txInputs?.imgUrl
       const methods = 'addPokemon,create,update'
+      const trainers = '{}'
       const pokemon = '{}'
 
       validate(
@@ -131,6 +187,7 @@ class Ketchum extends Program {
         type: 'non-fungible',
         imgUrl,
         methods,
+        trainers,
         pokemon,
       })
 
