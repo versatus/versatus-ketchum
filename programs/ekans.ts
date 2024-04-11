@@ -457,7 +457,7 @@ export class BasePokemonProgram extends Program {
   }
 }
 
-const constructorArguments = JSON.stringify('REPLACE_ME')
+const constructorArguments = JSON.stringify({"1":{"id":23,"name":"ekans","symbol":"EKANS","baseStats":"{\"hp\":\"35\",\"attack\":\"60\",\"defense\":\"44\",\"spAtk\":\"40\",\"spDef\":\"54\",\"speed\":\"55\"}","evYields":"{\"hp\":\"0\",\"attack\":\"1\",\"defense\":\"0\",\"spAtk\":\"0\",\"spDef\":\"0\",\"speed\":\"0\"}","imgUrl":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/23.gif","level":"1","moves":"[{\"name\":\"rage\",\"pp\":\"20\",\"power\":\"20\",\"type\":\"normal\"},{\"name\":\"dig\",\"pp\":\"10\",\"power\":\"80\",\"type\":\"ground\"},{\"name\":\"bite\",\"pp\":\"25\",\"power\":\"60\",\"type\":\"dark\"},{\"name\":\"poison-sting\",\"pp\":\"35\",\"power\":\"15\",\"type\":\"poison\"},{\"name\":\"acid\",\"pp\":\"30\",\"power\":\"40\",\"type\":\"poison\"},{\"name\":\"double-edge\",\"pp\":\"15\",\"power\":\"120\",\"type\":\"normal\"},{\"name\":\"strength\",\"pp\":\"15\",\"power\":\"80\",\"type\":\"normal\"},{\"name\":\"rock-slide\",\"pp\":\"10\",\"power\":\"75\",\"type\":\"rock\"},{\"name\":\"earthquake\",\"pp\":\"10\",\"power\":\"100\",\"type\":\"ground\"},{\"name\":\"wrap\",\"pp\":\"20\",\"power\":\"15\",\"type\":\"normal\"},{\"name\":\"take-down\",\"pp\":\"20\",\"power\":\"90\",\"type\":\"normal\"},{\"name\":\"mega-drain\",\"pp\":\"15\",\"power\":\"40\",\"type\":\"grass\"},{\"name\":\"body-slam\",\"pp\":\"15\",\"power\":\"85\",\"type\":\"normal\"},{\"name\":\"skull-bash\",\"pp\":\"10\",\"power\":\"130\",\"type\":\"normal\"}]","types":"[\"poison\"]"}})
 
 const start = (input: ComputeInputs) => {
   try {

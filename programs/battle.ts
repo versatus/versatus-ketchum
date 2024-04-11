@@ -20,6 +20,7 @@ import {
   validate,
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'
+import { IEvYield } from '../lib/types'
 
 class PokemonBattleProgram extends Program {
   constructor() {
@@ -239,7 +240,6 @@ class PokemonBattleProgram extends Program {
   acceptBattle(computeInputs: ComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
-      const programTokenInfo = parseProgramInfo(computeInputs)
       let {
         trainer2Address,
         pokemon2Address,
@@ -248,6 +248,7 @@ class PokemonBattleProgram extends Program {
         battleId,
       } = txInputs
 
+      const programTokenInfo = parseProgramInfo(computeInputs)
       const currBattleState = JSON.parse(programTokenInfo?.data?.battles)
       const currBattle = currBattleState[battleId]
       currBattle.pokemon2Speed = pokemon2Speed
@@ -508,6 +509,7 @@ class PokemonBattleProgram extends Program {
 
   attack(computeInputs: ComputeInputs) {
     try {
+      const { from } = computeInputs.transaction
       const txInputs = parseTxInputs(computeInputs)
       const programInfo = parseProgramInfo(computeInputs)
 
@@ -516,12 +518,16 @@ class PokemonBattleProgram extends Program {
         attackerLevel,
         attackerAttack,
         attackerName,
+        attackerEvs,
+        attackerTokenId,
         defenderTrainerAddress,
         defenderPokemonAddress,
         defenderTypes,
         defenderCurrHp,
         defenderDefense,
         defenderName,
+        defenderEvYields,
+        defenderTokenId,
         moveName,
         moveType,
         movePower,
@@ -532,19 +538,22 @@ class PokemonBattleProgram extends Program {
         attackerLevel,
         attackerAttack,
         attackerName,
+        attackerEvs,
+        attackerTokenId,
         defenderTrainerAddress,
         defenderPokemonAddress,
         defenderTypes,
         defenderCurrHp,
         defenderDefense,
         defenderName,
+        defenderEvYields,
+        defenderTokenId,
         moveName,
         moveType,
         movePower,
       })
 
       const currBattlesState = JSON.parse(programInfo?.data?.battles)
-
       const currBattle = currBattlesState[battleId]
 
       const { damage: damageInflicted, message } = this.executeMove(
@@ -568,7 +577,41 @@ class PokemonBattleProgram extends Program {
           : '0',
       )
 
-      const dataUpdate = { currHp: newHp }
+      const instructions = []
+
+      let battleState = 'battling'
+      let winningTrainerAddress = ''
+      if (parseInt(newHp) === 0) {
+        battleState = 'finished'
+        winningTrainerAddress = from
+        const parsedAttackerEvs = attackerEvs
+        const parsedDefenderEvYields = defenderEvYields
+
+        const earnedEvYields = addEvYields(attackerEvs, defenderEvYields)
+
+        const earnedEvYieldsStr = validateAndCreateJsonString({
+          [`${attackerTokenId}-evs`]: JSON.stringify(earnedEvYields),
+        })
+        const evUpdate = buildUpdateInstruction({
+          update: new TokenOrProgramUpdate(
+            'tokenUpdate',
+            new TokenUpdate(
+              new AddressOrNamespace(new Address(defenderTrainerAddress)),
+              new AddressOrNamespace(new Address(defenderPokemonAddress)),
+              [
+                buildTokenUpdateField({
+                  field: 'data',
+                  value: earnedEvYieldsStr,
+                  action: 'extend',
+                }),
+              ],
+            ),
+          ),
+        })
+        instructions.push(evUpdate)
+      }
+
+      const dataUpdate = { [`${defenderTokenId}-currHp`]: newHp }
       const dataStr = validateAndCreateJsonString(dataUpdate)
 
       const pokemonUpdate = buildUpdateInstruction({
@@ -587,12 +630,6 @@ class PokemonBattleProgram extends Program {
           ),
         ),
       })
-
-      let battleState = 'battling'
-      if (parseInt(newHp) === 0) {
-        battleState = 'finished'
-        // add new evs to the winner
-      }
 
       const newTurns = currBattle.turns
 
@@ -623,6 +660,7 @@ class PokemonBattleProgram extends Program {
         ...currBattlesState,
         [battleId]: {
           ...currBattle,
+          winningTrainerAddress,
           battleState,
           turns: newTurns,
         },
@@ -648,6 +686,7 @@ class PokemonBattleProgram extends Program {
       })
 
       return new Outputs(computeInputs, [
+        ...instructions,
         pokemonUpdate,
         battleStateUpdate,
       ]).toJson()
@@ -886,6 +925,17 @@ const effectivenessChart = {
   Dragon: {
     Dragon: 2,
   },
+}
+
+function addEvYields(currentEvs: IEvYield, earnedEvs: IEvYield): IEvYield {
+  return {
+    hp: currentEvs.hp + earnedEvs.hp,
+    attack: currentEvs.attack + earnedEvs.attack,
+    defense: currentEvs.defense + earnedEvs.defense,
+    speed: currentEvs.speed + earnedEvs.speed,
+    specialAttack: currentEvs.specialAttack + earnedEvs.specialAttack,
+    specialDefense: currentEvs.specialDefense + earnedEvs.specialDefense,
+  }
 }
 
 const start = (input: ComputeInputs) => {
