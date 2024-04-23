@@ -40,6 +40,7 @@ interface EvolutionData {
   symbol: string
   baseStats: string
   evYields: string
+  baseExp: string
   imgUrl: string
   moves: string
   types: string
@@ -51,7 +52,15 @@ const getPokemon = async (pokemonNameOrId: string | number) => {
       `https://pokeapi.co/api/v2/pokemon/${pokemonNameOrId}`,
     )
     const pokemon = response.data
-    const { id, name, stats, sprites, moves, types } = pokemon
+    const {
+      id,
+      name,
+      stats,
+      sprites,
+      moves,
+      types,
+      base_experience: baseExp,
+    } = pokemon
 
     const convertedStats = convertStats(stats)
     const convertedEvYield = convertEvYield(stats)
@@ -75,6 +84,7 @@ const getPokemon = async (pokemonNameOrId: string | number) => {
       baseStats,
       evYields,
       imgUrl,
+      baseExp: String(baseExp),
       types: JSON.stringify(typesData),
       moves: JSON.stringify(movesData),
     } as EvolutionData
@@ -100,7 +110,6 @@ const buildMoves = async (moves: IMoveResponse[]) => {
     move => move?.power,
   )
   const shuffledMoves = movesWithDetails.sort(() => 0.5 - Math.random())
-  // const selectedMoves = shuffledMoves.slice(0, 4)
   return shuffledMoves.map(move => ({
     name: move?.name,
     pp: move?.pp.toString(),
@@ -113,8 +122,17 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
   try {
     const pokemon = await getPokemon(pokemonNameOrId)
     if (!pokemon) throw new Error(`couldn't find ${pokemonNameOrId}`)
-    const { id, name, baseStats, evYields, symbol, imgUrl, moves, types } =
-      pokemon
+    const {
+      id,
+      name,
+      baseStats,
+      baseExp,
+      evYields,
+      symbol,
+      imgUrl,
+      moves,
+      types,
+    } = pokemon
     const specie = await fetchPokemonSpecies(id)
     const { evolution_chain: evoChain } = specie
     const { chain } = await fetchPokeApiData(evoChain.url)
@@ -126,6 +144,7 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
         symbol,
         baseStats,
         evYields,
+        baseExp,
         imgUrl,
         level: '1',
         moves,
@@ -245,20 +264,22 @@ const fetchPokeApiData = async (url: string) => {
 async function fetchMultiplePokemons(
   pokemonToInitialize: string[],
 ): Promise<any> {
-  const promises: Promise<any>[] = []
+  const results: any[] = []
 
   for (let i = 0; i < pokemonToInitialize.length; i++) {
-    promises.push(buildPokemonWithEvolutions(pokemonToInitialize[i]))
+    try {
+      const pokemon = await buildPokemonWithEvolutions(pokemonToInitialize[i])
+      results.push(JSON.stringify(pokemon))
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second between fetches
+      console.log(`doing ${i}...`)
+    } catch (error) {
+      console.error(
+        `Error fetching Pokemon data for ${pokemonToInitialize[i]}: ${error}`,
+      )
+    }
   }
 
-  try {
-    const pokemons = await Promise.all(promises)
-    return pokemons.map(pokemon => {
-      return JSON.stringify(pokemon)
-    })
-  } catch (error) {
-    console.error(`Error fetching Pokemon data: ${error}`)
-  }
+  return results
 }
 
 async function buildPokemonClass(pokemonName: string) {
@@ -272,16 +293,11 @@ async function buildPokemonClass(pokemonName: string) {
 }
 
 async function deployPokemon(pokemonName: string) {
-  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 3 -t 3 --txInputs '{}' --createTestFilePath pokemon-inputs/pokemon-create.json`
+  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 5 -t 5 --txInputs '{}' --createTestFilePath pokemon-inputs/pokemon-create.json`
   console.log(`running command: ${buildCommand}`)
   try {
     const result = await runCommand(buildCommand)
-    console.log(`Deploy successful for ${pokemonName}: `, result)
-
-    // Adjusted regular expression
-    const programAddressMatch = result.match(
-      /programAddress:\s*(0x[a-fA-F0-9]+)/,
-    )
+    console.log(`Deploy successful for ${pokemonName}`)
 
     return result
   } catch (error) {
@@ -370,16 +386,16 @@ async function initializePokemons(pokemonToInitialize: string[]) {
 }
 
 initializePokemons([
-  // 'bulbasaur',
+  'bulbasaur',
   'charmander',
-  'squirtle',
-  'caterpie',
-  'weedle',
-  'pidgey',
-  'rattata',
-  'spearow',
-  // 'ekans',
+  // 'squirtle',
+  // 'caterpie',
+  // 'weedle',
+  // 'pidgey',
   // 'pichu',
+  // 'rattata',
+  // 'spearow',
+  // 'ekans',
   // 'sandshrew',
   // 'nidoran',
   // 'clefairy',
@@ -403,21 +419,120 @@ initializePokemons([
   // 'ponyta',
   // 'slowpoke',
   // 'magnemite',
+  // 'farfetch’d',
   // 'doduo',
   // 'seel',
   // 'grimer',
   // 'shellder',
   // 'gastly',
+  // 'onix',
   // 'drowzee',
   // 'krabby',
   // 'voltorb',
   // 'exeggcute',
   // 'cubone',
+  // 'lickitung',
   // 'koffing',
   // 'rhyhorn',
+  // 'chansey',
+  // 'tangela',
+  // 'kangaskhan',
   // 'horsea',
   // 'goldeen',
   // 'staryu',
+  // 'mr. mime',
+  // 'scyther',
+  // 'jynx',
+  // 'electabuzz',
+  // 'magmar',
+  // 'pinsir',
+  // 'tauros',
   // 'magikarp',
+  // 'lapras',
+  // 'ditto',
   // 'eevee',
+  // 'porygon',
+  // 'omanyte',
+  // 'kabuto',
+  // 'aerodactyl',
+  // 'snorlax',
+  // 'dratini',
+  // 'articuno',
+  // 'zapdos',
+  // 'moltres',
+  // 'mewtwo',
+  // 'mew',
+  // 'ivysaur',
+  // 'venusaur',
+  // 'charmeleon',
+  // 'charizard',
+  // 'wartortle',
+  // 'blastoise',
+  // 'metapod',
+  // 'butterfree',
+  // 'kakuna',
+  // 'beedrill',
+  // 'pidgeotto',
+  // 'pidgeot',
+  // 'raticate',
+  // 'fearow',
+  // 'arbok',
+  // 'raichu',
+  // 'sandslash',
+  // 'nidorina',
+  // 'nidoqueen',
+  // 'nidorino',
+  // 'nidoking',
+  // 'clefable',
+  // 'ninetales',
+  // 'wigglytuff',
+  // 'golbat',
+  // 'gloom',
+  // 'vileplume',
+  // 'parasect',
+  // 'venomoth',
+  // 'dugtrio',
+  // 'persian',
+  // 'golduck',
+  // 'primeape',
+  // 'arcanine',
+  // 'poliwhirl',
+  // 'poliwrath',
+  // 'kadabra',
+  // 'alakazam',
+  // 'machoke',
+  // 'machamp',
+  // 'weepinbell',
+  // 'victreebel',
+  // 'tentacruel',
+  // 'graveler',
+  // 'golem',
+  // 'rapidash',
+  // 'slowbro',
+  // 'magneton',
+  // 'dodrio',
+  // 'dewgong',
+  // 'muk',
+  // 'cloyster',
+  // 'haunter',
+  // 'gengar',
+  // 'hypno',
+  // 'kingler',
+  // 'electrode',
+  // 'exeggutor',
+  // 'marowak',
+  // 'hitmonlee',
+  // 'hitmonchan',
+  // 'weezing',
+  // 'rhydon',
+  // 'seadra',
+  // 'seaking',
+  // 'starmie',
+  // 'jolteon',
+  // 'flareon',
+  // 'vaporeon',
+  // 'omastar',
+  // 'kabutops',
+  // 'dragonair',
+  // 'dragonite',
 ])

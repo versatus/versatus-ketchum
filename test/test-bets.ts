@@ -36,6 +36,10 @@ class BettingSystem {
   }
 
   calculateBP(pokemon: Pokemon): number {
+    const bp =
+      (pokemon.baseStats + pokemon.ivs) * (1 + pokemon.level / 100) +
+      pokemon.evs
+    console.log(`${pokemon.name} BP: ${bp}`)
     return (
       (pokemon.baseStats + pokemon.ivs) * (1 + pokemon.level / 100) +
       pokemon.evs
@@ -63,7 +67,9 @@ class BettingSystem {
   determineWinner(): string {
     const bpA = this.calculateBP(this.pokemonA)
     const bpB = this.calculateBP(this.pokemonB)
-    return bpA > bpB ? this.pokemonA.name : this.pokemonB.name
+    return bpA * Math.random() > bpB * Math.random()
+      ? this.pokemonA.name
+      : this.pokemonB.name
   }
 
   calculatePayouts(winner: string) {
@@ -87,12 +93,13 @@ class BettingSystem {
     // Calculate winner
     const winner = this.determineWinner()
 
+    console.log(`${winner} WINS!`)
+
     // Calculate and log payouts
     this.calculatePayouts(winner)
   }
 }
 
-// Simulating with example Pokémon and bets
 const pokemonA: Pokemon = {
   name: 'Squirtle',
   baseStats: 300,

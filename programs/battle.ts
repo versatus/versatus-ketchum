@@ -7,7 +7,6 @@ import {
   buildTokenUpdateField,
   buildUpdateInstruction,
   ComputeInputs,
-  formatHexToAmount,
   Outputs,
   parseProgramInfo,
   parseTxInputs,
@@ -196,42 +195,6 @@ class PokemonBattleProgram extends Program {
         createInstruction,
         programUpdateInstructions,
       ]).toJson()
-    } catch (e) {
-      throw e
-    }
-  }
-
-  damageTest(computeInputs: ComputeInputs) {
-    try {
-      const txInputs = parseTxInputs(computeInputs)
-      const { trainerAddress, pokemonAddress, damage, currHp } = txInputs
-
-      let newHp = String(
-        parseInt(currHp) - parseInt(damage) > 0
-          ? parseInt(currHp) - parseInt(damage)
-          : '0',
-      )
-      const dataUpdate = { currHp: newHp }
-
-      const dataStr = validateAndCreateJsonString(dataUpdate)
-
-      const pokemon1Update = buildUpdateInstruction({
-        update: new TokenOrProgramUpdate(
-          'tokenUpdate',
-          new TokenUpdate(
-            new AddressOrNamespace(new Address(trainerAddress)),
-            new AddressOrNamespace(new Address(pokemonAddress)),
-            [
-              buildTokenUpdateField({
-                field: 'data',
-                value: dataStr,
-                action: 'extend',
-              }),
-            ],
-          ),
-        ),
-      })
-      return new Outputs(computeInputs, [pokemon1Update]).toJson()
     } catch (e) {
       throw e
     }
@@ -520,6 +483,12 @@ class PokemonBattleProgram extends Program {
         attackerName,
         attackerEvs,
         attackerTokenId,
+        attackerPokemonAddress,
+        attackerExp,
+        attackerHp,
+        attackerCurrHp,
+        defenderLevel,
+        defenderExp,
         defenderTrainerAddress,
         defenderPokemonAddress,
         defenderTypes,
@@ -540,6 +509,12 @@ class PokemonBattleProgram extends Program {
         attackerName,
         attackerEvs,
         attackerTokenId,
+        attackerPokemonAddress,
+        attackerExp,
+        attackerHp,
+        attackerCurrHp,
+        defenderLevel,
+        defenderExp,
         defenderTrainerAddress,
         defenderPokemonAddress,
         defenderTypes,
@@ -555,6 +530,11 @@ class PokemonBattleProgram extends Program {
 
       const currBattlesState = JSON.parse(programInfo?.data?.battles)
       const currBattle = currBattlesState[battleId]
+      if (currBattle.battleState === 'finished') {
+        throw new Error('battle has concluded')
+      }
+
+      const currBattleTurns = currBattle.turns
 
       const { damage: damageInflicted, message } = this.executeMove(
         { name: moveName, type: moveType, power: parseInt(movePower) },
@@ -581,23 +561,37 @@ class PokemonBattleProgram extends Program {
 
       let battleState = 'battling'
       let winningTrainerAddress = ''
+      let winnerEarnedExp = ''
       if (parseInt(newHp) === 0) {
         battleState = 'finished'
         winningTrainerAddress = from
-        const parsedAttackerEvs = attackerEvs
-        const parsedDefenderEvYields = defenderEvYields
+        const newEvs = addEvYields(
+          JSON.parse(attackerEvs),
+          JSON.parse(defenderEvYields),
+        )
 
-        const earnedEvYields = addEvYields(attackerEvs, defenderEvYields)
+        let earnedExp = this.calculateExperience({
+          baseExp: parseInt(defenderExp),
+          levelDefeated: parseInt(defenderLevel),
+          levelWinner: parseInt(attackerLevel),
+          healthRemainingPercentage: Math.floor(
+            parseInt(attackerCurrHp) / parseInt(attackerHp),
+          ),
+        })
+
+        winnerEarnedExp = String(earnedExp)
 
         const earnedEvYieldsStr = validateAndCreateJsonString({
-          [`${attackerTokenId}-evs`]: JSON.stringify(earnedEvYields),
+          [`${attackerTokenId}-evs`]: JSON.stringify(newEvs),
+          [`${attackerTokenId}-exp`]: String(earnedExp + parseInt(attackerExp)),
         })
+
         const evUpdate = buildUpdateInstruction({
           update: new TokenOrProgramUpdate(
             'tokenUpdate',
             new TokenUpdate(
-              new AddressOrNamespace(new Address(defenderTrainerAddress)),
-              new AddressOrNamespace(new Address(defenderPokemonAddress)),
+              new AddressOrNamespace(new Address(from)),
+              new AddressOrNamespace(new Address(attackerPokemonAddress)),
               [
                 buildTokenUpdateField({
                   field: 'data',
@@ -631,9 +625,7 @@ class PokemonBattleProgram extends Program {
         ),
       })
 
-      const newTurns = currBattle.turns
-
-      newTurns.push({
+      currBattleTurns.push({
         attacker: {
           name: attackerName,
           level: attackerLevel,
@@ -661,8 +653,9 @@ class PokemonBattleProgram extends Program {
         [battleId]: {
           ...currBattle,
           winningTrainerAddress,
+          winnerEarnedExp,
           battleState,
-          turns: newTurns,
+          turns: currBattleTurns,
         },
       }
 
@@ -712,7 +705,6 @@ class PokemonBattleProgram extends Program {
     const damage = this.calculateDamage(move, attacker, defender)
     const isCritical = this.calculateCriticalHit() === 1.5
 
-    // TODO: pass these strings back to store in the battle NFT
     let attackMessage = ``
 
     if (isCritical) {
@@ -730,45 +722,73 @@ class PokemonBattleProgram extends Program {
     return { damage, message: attackMessage }
   }
 
-  // settleBets(winningPokemonId: number) {
-  //   // Calculate total amount bet on each Pokémon
-  //   const totalBets = this.bets.reduce(
-  //     (
-  //       acc: { [x: string]: any },
-  //       bet: { onPokemonId: string | number; amount: any },
-  //     ) => {
-  //       acc[bet.onPokemonId] = (acc[bet.onPokemonId] || 0) + bet.amount
-  //       return acc
-  //     },
-  //     {},
-  //   )
-  //
-  //   // Calculate total amount bet on the winning Pokémon
-  //   const totalWinningBets = totalBets[winningPokemonId] || 0
-  //
-  //   // Determine the payout ratio
-  //   const totalPot = Object.values(totalBets).reduce(
-  //     (acc, amount) => acc + amount,
-  //     0,
-  //   )
-  //   const payoutRatio = totalPot / totalWinningBets
-  //
-  //   // Calculate winnings for each winning bet
-  //   const winnings = this.bets
-  //     .filter(
-  //       (bet: { onPokemonId: number }) => bet.onPokemonId === winningPokemonId,
-  //     )
-  //     .map((bet: { userId: any; amount: number }) => ({
-  //       userId: bet.userId,
-  //       wonAmount: bet.amount * payoutRatio,
-  //     }))
-  //
-  //   // Reset bets for the next battle
-  //   this.bets = []
-  //
-  //   // Return or process the winnings as needed
-  //   return winnings
-  // }
+  calculateExperience({
+    baseExp,
+    levelDefeated,
+    levelWinner,
+    healthRemainingPercentage,
+  }: {
+    baseExp: number
+    levelDefeated: number
+    levelWinner: number
+    healthRemainingPercentage: number
+  }): number {
+    const levelDifference = levelDefeated - levelWinner
+    const levelModifier = 1 + levelDifference * 0.05
+    const safeLevelModifier = Math.max(levelModifier, 0.1)
+
+    let victoryConditionBonus = 1
+    if (healthRemainingPercentage === 100) {
+      victoryConditionBonus = 1.2
+    } else if (healthRemainingPercentage >= 75) {
+      victoryConditionBonus = 1.1
+    }
+
+    const rawExp = Math.floor(
+      baseExp * safeLevelModifier * victoryConditionBonus,
+    )
+    return Math.max(rawExp, 1)
+  }
+
+  settleBets(winningPokemonId: number) {
+    // // Calculate total amount bet on each Pokémon
+    // const totalBets = this.bets.reduce(
+    //   (
+    //     acc: { [x: string]: any },
+    //     bet: { onPokemonId: string | number; amount: any },
+    //   ) => {
+    //     acc[bet.onPokemonId] = (acc[bet.onPokemonId] || 0) + bet.amount
+    //     return acc
+    //   },
+    //   {},
+    // )
+    //
+    // // Calculate total amount bet on the winning Pokémon
+    // const totalWinningBets = totalBets[winningPokemonId] || 0
+    //
+    // // Determine the payout ratio
+    // const totalPot = Object.values(totalBets).reduce(
+    //   (acc, amount) => acc + amount,
+    //   0,
+    // )
+    // const payoutRatio = totalPot / totalWinningBets
+    //
+    // // Calculate winnings for each winning bet
+    // const winnings = this.bets
+    //   .filter(
+    //     (bet: { onPokemonId: number }) => bet.onPokemonId === winningPokemonId,
+    //   )
+    //   .map((bet: { userId: any; amount: number }) => ({
+    //     userId: bet.userId,
+    //     wonAmount: bet.amount * payoutRatio,
+    //   }))
+    //
+    // // Reset bets for the next battle
+    // this.bets = []
+    //
+    // // Return or process the winnings as needed
+    // return winnings
+  }
 
   calculateDamage(
     move: { type: any; power: number },
@@ -808,6 +828,17 @@ class PokemonBattleProgram extends Program {
     })
 
     return effectiveness
+  }
+}
+
+function addEvYields(currentEvs: IEvYield, earnedEvs: IEvYield): IEvYield {
+  return {
+    hp: String(parseInt(currentEvs.hp) + parseInt(earnedEvs.hp)),
+    attack: String(parseInt(currentEvs.attack) + parseInt(earnedEvs.attack)),
+    defense: String(parseInt(currentEvs.defense) + parseInt(earnedEvs.defense)),
+    speed: String(parseInt(currentEvs.speed) + parseInt(earnedEvs.speed)),
+    spAtk: String(parseInt(currentEvs.spAtk) + parseInt(earnedEvs.spAtk)),
+    spDef: String(parseInt(currentEvs.spDef) + parseInt(earnedEvs.spDef)),
   }
 }
 
@@ -925,17 +956,6 @@ const effectivenessChart = {
   Dragon: {
     Dragon: 2,
   },
-}
-
-function addEvYields(currentEvs: IEvYield, earnedEvs: IEvYield): IEvYield {
-  return {
-    hp: currentEvs.hp + earnedEvs.hp,
-    attack: currentEvs.attack + earnedEvs.attack,
-    defense: currentEvs.defense + earnedEvs.defense,
-    speed: currentEvs.speed + earnedEvs.speed,
-    specialAttack: currentEvs.specialAttack + earnedEvs.specialAttack,
-    specialDefense: currentEvs.specialDefense + earnedEvs.specialDefense,
-  }
 }
 
 const start = (input: ComputeInputs) => {

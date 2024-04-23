@@ -3,6 +3,7 @@ dist
 .idea
 .lasr
 build
+todo.txt
 /programs/bulbasaur.ts
 /programs/caterpie.ts
 /programs/charmander.ts

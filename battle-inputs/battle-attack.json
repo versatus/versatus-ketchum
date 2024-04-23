@@ -1,10 +1,10 @@
 {
-  "contractInputs": "{\"0x1a2b3c4d5e6f70819293a4b5c6d7e8f9\":\"0x0000000000000000000000000000000000000000000000000000000000000001\"}",
+  "contractInputs": "{}",
   "op": "attack",
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "{\"battleId\":\"0\",\"defenderTrainerAddress\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"defenderPokemonAddress\":\"0xaf3c3eb92d1523e2f0875d175d2c84dfe001bb9d\",\"defenderTypes\":\"[\"normal\",\"flying\"]\",\"defenderCurrHp\":\"11\",\"defenderDefense\":\"5\",\"defenderName\":\"PIDGEY\",\"defenderEvYields\":\"{\"hp\":\"0\",\"attack\":\"0\",\"defense\":\"0\",\"spAtk\":\"0\",\"spDef\":\"0\",\"speed\":\"1\"}\",\"defenderTokenId\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"attackerLevel\":\"1\",\"attackerAttack\":\"6\", \"attackerName\":\"RATTATA\",\"attackerEvs\":\"{\"hp\":\"0\",\"attack\":\"0\",\"defense\":\"0\",\"speed\":\"0\",\"special\":\"0\"}\",\"attackerTokenId\":\"0x0000000000000000000000000000000000000000000000001bc16d674ec80000\",\"moveName\":\"thunder\",\"moveType\":\"electric\", \"movePower\":\"110\"}",
+    "transactionInputs": "{\"battleId\":\"0\",\"defenderTrainerAddress\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"defenderPokemonAddress\":\"0xaf3c3eb92d1523e2f0875d175d2c84dfe001bb9d\",\"defenderTypes\":\"[\\\"normal\\\",\\\"flying\\\"]\",\"defenderCurrHp\":\"1\",\"defenderDefense\":\"5\",\"defenderName\":\"PIDGEY\",\"defenderEvYields\":\"{\\\"hp\\\":\\\"0\\\",\\\"attack\\\":\\\"0\\\",\\\"defense\\\":\\\"0\\\",\\\"special\\\":\\\"0\\\",\\\"speed\\\":\\\"1\\\"}\",\"defenderTokenId\":\"0\",\"attackerLevel\":\"1\",\"attackerAttack\":\"6\", \"attackerPokemonAddress\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\", \"attackerName\":\"RATTATA\",\"attackerEvs\":\"{\\\"hp\\\":\\\"0\\\",\\\"attack\\\":\\\"1\\\",\\\"defense\\\":\\\"2\\\",\\\"speed\\\":\\\"3\\\",\\\"special\\\":\\\"4\\\"}\",\"attackerTokenId\":\"0\",\"moveName\":\"thunder\",\"moveType\":\"electric\", \"movePower\":\"110\"}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
     "op": "attack",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",

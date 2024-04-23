@@ -24,10 +24,10 @@ export interface IMove {
 }
 
 export interface IEvYield {
-  hp: number
-  attack: number
-  defense: number
-  speed: number
-  specialAttack: number
-  specialDefense: number
+  hp: string
+  attack: string
+  defense: string
+  speed: string
+  spAtk: string
+  spDef: string
 }

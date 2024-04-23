@@ -42,7 +42,7 @@ export function calculateHP(
  * Generates random IVs for a Pokémon's stats in Pokémon Red and Blue.
  * Each IV can range from 0 to 15.
  *
- * @returns { { hp: string, attack: string, defense: string, speed: string, special: string } }
+ * @returns { { hp: string, attack: string, defense: string, speed: string, spAtk: string, spDef: string } }
  * An object containing the generated IVs for each stat.
  */
 export function generateIVs(): {
@@ -50,14 +50,16 @@ export function generateIVs(): {
   attack: string
   defense: string
   speed: string
-  special: string
+  spAtk: string
+  spDef: string
 } {
   return {
     hp: Math.floor(Math.random() * 16).toString(),
     attack: Math.floor(Math.random() * 16).toString(),
     defense: Math.floor(Math.random() * 16).toString(),
     speed: Math.floor(Math.random() * 16).toString(),
-    special: Math.floor(Math.random() * 16).toString(),
+    spAtk: Math.floor(Math.random() * 16).toString(),
+    spDef: Math.floor(Math.random() * 16).toString(),
   }
 }
 
@@ -73,14 +75,16 @@ export function generateInitialEVs(): {
   attack: string
   defense: string
   speed: string
-  special: string
+  spAtk: string
+  spDef: string
 } {
   return {
     hp: '0', // Initial EVs as a string
     attack: '0',
     defense: '0',
     speed: '0',
-    special: '0',
+    spAtk: '0',
+    spDef: '0',
   }
 }
 
@@ -89,7 +93,8 @@ type EVs = {
   attack: string
   defense: string
   speed: string
-  special: string
+  spAtk: string
+  spDef: string
   [key: string]: string // Updating the index signature to reflect string values
 }
 
@@ -111,7 +116,7 @@ const updateEVs = (currentEVs: EVs): EVs => {
   const evGain = Math.floor(Math.random() * 10) + 1 // Gain between 1 and 10 EV points
 
   // Choose a stat to increase at random. Alternatively, you could increase all stats or select based on the training type.
-  const stats = ['hp', 'attack', 'defense', 'speed', 'special']
+  const stats = ['hp', 'attack', 'defense', 'speed', 'spAtk', 'spDef']
   const statToIncrease = stats[Math.floor(Math.random() * stats.length)]
 
   // Convert the current EV from string to number for calculation, then update the stat with EV gain, ensuring it does not exceed the maxEV limit
