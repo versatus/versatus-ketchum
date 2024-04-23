@@ -50,7 +50,7 @@ export class BasePokemonProgram extends Program {
       create: this.create.bind(this),
       catch: this.catch.bind(this),
       heal: this.heal.bind(this),
-      train: this.train.bind(this),
+      consumeRareCandy: this.consumeRareCandy.bind(this),
     })
   }
 
@@ -259,7 +259,6 @@ export class BasePokemonProgram extends Program {
       throw e
     }
   }
-
   catch(computeInputs: ComputeInputs) {
     try {
       const { transaction, accountInfo } = computeInputs
@@ -392,8 +391,7 @@ export class BasePokemonProgram extends Program {
       throw e
     }
   }
-
-  train(computeInputs: ComputeInputs) {
+  consumeRareCandy(computeInputs: ComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { from } = transaction
@@ -416,6 +414,10 @@ export class BasePokemonProgram extends Program {
 
       const tokenIdStr = parseInt(formatHexToAmount(tokenId)).toString()
       const currentLevel = parseInt(level)
+      if (currentLevel >= 100) {
+        throw new Error('Pokemon is already at max level')
+      }
+
       const nextLevel = currentLevel + 1
       const evolutionData = this.getEvolutionData(nextLevel)
 
@@ -454,6 +456,53 @@ export class BasePokemonProgram extends Program {
     } catch (e) {
       throw e
     }
+  }
+}
+
+function getExpForLevelSlow(level: number): number {
+  return Math.floor((5 * Math.pow(level, 3)) / 4)
+}
+
+function getExpForLevelMedium(level: number): number {
+  return Math.floor(Math.pow(level, 3))
+}
+
+function getExpForLevelFast(level: number): number {
+  return Math.floor((4 * Math.pow(level, 3)) / 5)
+}
+
+function getExpForLevelMediumSlow(level: number): number {
+  return Math.floor(
+    (6 * Math.pow(level, 3)) / 5 - 15 * Math.pow(level, 2) + 100 * level - 140,
+  )
+}
+
+function getExpForLevelErratic(level: number): number {
+  if (level <= 50) {
+    return Math.floor((level ** 3 * (100 - level)) / 50)
+  } else if (level <= 68) {
+    return Math.floor((level ** 3 * (150 - level)) / 100)
+  } else if (level <= 98) {
+    return Math.floor(
+      (level ** 3 *
+        (1274 +
+          Math.pow(level % 3, 2) -
+          9 * (level % 3) -
+          20 * Math.floor(level / 3))) /
+        1000,
+    )
+  } else {
+    return Math.floor((level ** 3 * (160 - level)) / 100)
+  }
+}
+
+function getExpForLevelFluctuating(level: number): number {
+  if (level <= 15) {
+    return Math.floor((level ** 3 * (24 + Math.floor((level + 1) / 3))) / 50)
+  } else if (level <= 35) {
+    return Math.floor((level ** 3 * (14 + level)) / 50)
+  } else {
+    return Math.floor((level ** 3 * (32 + Math.floor(level / 2))) / 50)
   }
 }
 

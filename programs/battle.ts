@@ -581,9 +581,14 @@ class PokemonBattleProgram extends Program {
 
         winnerEarnedExp = String(earnedExp)
 
+        const newExp = String(earnedExp + parseInt(attackerExp))
+
+        const newLevel = levelingMap['medium'](parseInt(newExp))
+
         const earnedEvYieldsStr = validateAndCreateJsonString({
           [`${attackerTokenId}-evs`]: JSON.stringify(newEvs),
-          [`${attackerTokenId}-exp`]: String(earnedExp + parseInt(attackerExp)),
+          [`${attackerTokenId}-exp`]: newExp,
+          [`${attackerTokenId}-level`]: String(newLevel),
         })
 
         const evUpdate = buildUpdateInstruction({
@@ -839,6 +844,71 @@ function addEvYields(currentEvs: IEvYield, earnedEvs: IEvYield): IEvYield {
     speed: String(parseInt(currentEvs.speed) + parseInt(earnedEvs.speed)),
     spAtk: String(parseInt(currentEvs.spAtk) + parseInt(earnedEvs.spAtk)),
     spDef: String(parseInt(currentEvs.spDef) + parseInt(earnedEvs.spDef)),
+  }
+}
+
+const levelingMap = {
+  slow: calculateLevelSlow,
+  medium: calculateLevelMedium,
+  fast: calculateLevelFast,
+  mediumSlow: calculateLevelMediumSlow,
+  erratic: calculateLevelErratic,
+  fluctuating: calculateLevelFluctuating,
+}
+
+function calculateLevelSlow(exp: number): number {
+  return Math.floor(Math.pow((4 * exp) / 5, 1 / 3))
+}
+
+function calculateLevelMedium(exp: number): number {
+  return Math.floor(Math.pow(exp, 1 / 3))
+}
+
+function calculateLevelFast(exp: number): number {
+  return Math.floor(Math.pow((5 * exp) / 4, 1 / 3))
+}
+
+function calculateLevelMediumSlow(exp: number): number {
+  for (let level = 1; ; level++) {
+    let requiredExp =
+      (6 * Math.pow(level, 3)) / 5 - 15 * Math.pow(level, 2) + 100 * level - 140
+    if (exp < requiredExp) return level - 1
+  }
+}
+
+function calculateLevelErratic(exp: number): number {
+  for (let level = 1; ; level++) {
+    let requiredExp
+    if (level <= 50) {
+      requiredExp = (level ** 3 * (100 - level)) / 50
+    } else if (level <= 68) {
+      requiredExp = (level ** 3 * (150 - level)) / 100
+    } else if (level <= 98) {
+      requiredExp =
+        (level ** 3 *
+          (1274 +
+            Math.pow(level % 3, 2) -
+            9 * (level % 3) -
+            20 * Math.floor(level / 3))) /
+        1000
+    } else {
+      requiredExp = (level ** 3 * (160 - level)) / 100
+    }
+    if (exp < requiredExp) return level - 1
+  }
+}
+
+function calculateLevelFluctuating(exp: number): number {
+  for (let level = 1; ; level++) {
+    let requiredExp
+    if (level <= 15) {
+      requiredExp = (level ** 3 * (24 + Math.floor((level + 1) / 3))) / 50
+    } else if (level <= 35) {
+      requiredExp = (level ** 3 * (14 + level)) / 50
+    } else {
+      requiredExp = (level ** 3 * (32 + Math.floor(level / 2))) / 50
+    }
+    if (exp < requiredExp) return level - 1
   }
 }
 

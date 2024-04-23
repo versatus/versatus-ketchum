@@ -134,7 +134,7 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
       types,
     } = pokemon
     const specie = await fetchPokemonSpecies(id)
-    const { evolution_chain: evoChain } = specie
+    const { evolution_chain: evoChain, growth_rate: growthRate } = specie
     const { chain } = await fetchPokeApiData(evoChain.url)
 
     const builtPokemon = {
@@ -145,6 +145,7 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
         baseStats,
         evYields,
         baseExp,
+        growthRate: growthRate.name,
         imgUrl,
         level: '1',
         moves,
