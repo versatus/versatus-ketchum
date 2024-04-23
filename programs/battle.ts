@@ -585,7 +585,7 @@ class PokemonBattleProgram extends Program {
 
         const newLevel = levelingMap['medium'](parseInt(newExp))
 
-        const earnedEvYieldsStr = validateAndCreateJsonString({
+        const attackerTokenUpdate = validateAndCreateJsonString({
           [`${attackerTokenId}-evs`]: JSON.stringify(newEvs),
           [`${attackerTokenId}-exp`]: newExp,
           [`${attackerTokenId}-level`]: String(newLevel),
@@ -600,7 +600,7 @@ class PokemonBattleProgram extends Program {
               [
                 buildTokenUpdateField({
                   field: 'data',
-                  value: earnedEvYieldsStr,
+                  value: attackerTokenUpdate,
                   action: 'extend',
                 }),
               ],
@@ -613,7 +613,7 @@ class PokemonBattleProgram extends Program {
       const dataUpdate = { [`${defenderTokenId}-currHp`]: newHp }
       const dataStr = validateAndCreateJsonString(dataUpdate)
 
-      const pokemonUpdate = buildUpdateInstruction({
+      const defenderTokenUpdate = buildUpdateInstruction({
         update: new TokenOrProgramUpdate(
           'tokenUpdate',
           new TokenUpdate(
@@ -685,7 +685,7 @@ class PokemonBattleProgram extends Program {
 
       return new Outputs(computeInputs, [
         ...instructions,
-        pokemonUpdate,
+        defenderTokenUpdate,
         battleStateUpdate,
       ]).toJson()
     } catch (e) {
@@ -851,9 +851,9 @@ const levelingMap = {
   slow: calculateLevelSlow,
   medium: calculateLevelMedium,
   fast: calculateLevelFast,
-  mediumSlow: calculateLevelMediumSlow,
-  erratic: calculateLevelErratic,
-  fluctuating: calculateLevelFluctuating,
+  ['medium-slow']: calculateLevelMediumSlow,
+  ['slow-then-very-fast']: calculateLevelErratic,
+  ['fast-then-very-slow']: calculateLevelFluctuating,
 }
 
 function calculateLevelSlow(exp: number): number {

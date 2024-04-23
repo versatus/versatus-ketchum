@@ -33,6 +33,7 @@ interface EvolutionData {
   name: string
   symbol: string
   baseStats: string
+  growthRate: string
   evYields: string
   imgUrl: string
   moves: string
@@ -127,6 +128,26 @@ export class BasePokemonProgram extends Program {
     return evolutionData ? evolutionData.moves : '{}'
   }
 
+  getGrowthRate(level: number): string {
+    // Check if the exact level exists first
+    let evolutionData = this.evolutionMap.get(level)
+
+    // If it doesn't exist, find the next lowest level
+    if (!evolutionData) {
+      let previousLevels = Array.from(this.evolutionMap.keys())
+        .filter(lvl => lvl <= level)
+        .sort((a, b) => b - a) // Sort in descending order
+
+      // Get the closest level that does not exceed the current level
+      let closestLevel = previousLevels.length > 0 ? previousLevels[0] : null
+      if (closestLevel !== null) {
+        evolutionData = this.evolutionMap.get(closestLevel)
+      }
+    }
+
+    return evolutionData ? evolutionData.growthRate : '{}'
+  }
+
   getTypes(level: number): string {
     // Check if the exact level exists first
     let evolutionData = this.evolutionMap.get(level)
@@ -199,6 +220,7 @@ export class BasePokemonProgram extends Program {
       const level = '1'
       const baseStats = this.getBaseStats(parseInt(level))
       const evYields = this.getBaseEvs(parseInt(level))
+      const growthRate = this.getGrowthRate(parseInt(level))
       const moves = this.getMoves(parseInt(level))
       const types = this.getTypes(parseInt(level))
       const imgUrl = this.getInitialImageUrl()
@@ -212,6 +234,7 @@ export class BasePokemonProgram extends Program {
         imgUrl,
         methods,
         baseStats,
+        growthRate,
         evYields,
         moves,
         types,
@@ -421,6 +444,8 @@ export class BasePokemonProgram extends Program {
       const nextLevel = currentLevel + 1
       const evolutionData = this.getEvolutionData(nextLevel)
 
+      const newExp = levelingMap['medium'](nextLevel)
+
       if (evolutionData) {
         data[`${tokenIdStr}-level`] = nextLevel.toString()
         data[`${tokenIdStr}-imgUrl`] = evolutionData.imgUrl
@@ -428,6 +453,7 @@ export class BasePokemonProgram extends Program {
         data[`${tokenIdStr}-name`] = evolutionData.name
         data[`${tokenIdStr}-baseStats`] = evolutionData.baseStats
         data[`${tokenIdStr}-evYields`] = evolutionData.evYields
+        data[`${tokenIdStr}-exp`] = newExp
       }
 
       const dataUpdate = { ...data }
@@ -457,6 +483,15 @@ export class BasePokemonProgram extends Program {
       throw e
     }
   }
+}
+
+const levelingMap = {
+  slow: getExpForLevelSlow,
+  medium: getExpForLevelMedium,
+  fast: getExpForLevelFast,
+  ['medium-slow']: getExpForLevelMediumSlow,
+  ['slow-then-very-fast']: getExpForLevelErratic,
+  ['fast-then-very-slow']: getExpForLevelFluctuating,
 }
 
 function getExpForLevelSlow(level: number): number {

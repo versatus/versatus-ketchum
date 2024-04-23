@@ -39,6 +39,7 @@ interface EvolutionData {
   name: string
   symbol: string
   baseStats: string
+  growthRate: string
   evYields: string
   baseExp: string
   imgUrl: string
@@ -62,6 +63,9 @@ const getPokemon = async (pokemonNameOrId: string | number) => {
       base_experience: baseExp,
     } = pokemon
 
+    const specie = await fetchPokemonSpecies(id)
+    const { growth_rate: growthRate } = specie
+
     const convertedStats = convertStats(stats)
     const convertedEvYield = convertEvYield(stats)
 
@@ -84,6 +88,7 @@ const getPokemon = async (pokemonNameOrId: string | number) => {
       baseStats,
       evYields,
       imgUrl,
+      growthRate: growthRate.name,
       baseExp: String(baseExp),
       types: JSON.stringify(typesData),
       moves: JSON.stringify(movesData),
@@ -129,12 +134,14 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
       baseExp,
       evYields,
       symbol,
+      growthRate,
       imgUrl,
       moves,
       types,
     } = pokemon
+
     const specie = await fetchPokemonSpecies(id)
-    const { evolution_chain: evoChain, growth_rate: growthRate } = specie
+    const { evolution_chain: evoChain } = specie
     const { chain } = await fetchPokeApiData(evoChain.url)
 
     const builtPokemon = {
@@ -145,7 +152,7 @@ const buildPokemonWithEvolutions = async (pokemonNameOrId: string | number) => {
         baseStats,
         evYields,
         baseExp,
-        growthRate: growthRate.name,
+        growthRate,
         imgUrl,
         level: '1',
         moves,
