@@ -3,7 +3,7 @@ import {
   buildTransferInstruction,
   ComputeInputs,
   formatHexToAmount,
-  parseProgramInfo,
+  parseProgramTokenInfo,
   parseTxInputs,
   TokenUpdate,
 } from '@versatus/versatus-javascript'
@@ -46,13 +46,10 @@ export class BasePokemonProgram extends Program {
   constructor(evolutionJson: string) {
     super()
     this.evolutionMap = this.parseEvolutionJson(evolutionJson)
-
-    Object.assign(this.methodStrategies, {
-      create: this.create.bind(this),
-      catch: this.catch.bind(this),
-      heal: this.heal.bind(this),
-      consumeRareCandy: this.consumeRareCandy.bind(this),
-    })
+    this.registerContractMethod('create', this.create)
+    this.registerContractMethod('catch', this.catch)
+    this.registerContractMethod('heal', this.heal)
+    this.registerContractMethod('consumeRareCandy', this.consumeRareCandy)
   }
 
   parseEvolutionJson(json: string): Map<number, EvolutionData> {
@@ -286,7 +283,7 @@ export class BasePokemonProgram extends Program {
     try {
       const { transaction, accountInfo } = computeInputs
       const { from } = transaction
-      const programInfo = parseProgramInfo(computeInputs)
+      const programInfo = parseProgramTokenInfo(computeInputs)
       const accountInfoData = accountInfo.programAccountData
       const baseStats = JSON.parse(accountInfoData?.baseStats)
       const evYields = JSON.parse(accountInfoData?.evYields)
@@ -428,7 +425,7 @@ export class BasePokemonProgram extends Program {
       validate(tokenId, 'missing tokenId in transactionInputs...')
       validate(level, 'missing level in transactionInputs...')
 
-      const programInfo = parseProgramInfo(computeInputs)
+      const programInfo = parseProgramTokenInfo(computeInputs)
 
       const data = validate(
         programInfo?.data,

@@ -1198,10 +1198,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@versatus/versatus-javascript@^0.1.135":
-  version "0.1.135"
-  resolved "https://registry.yarnpkg.com/@versatus/versatus-javascript/-/versatus-javascript-0.1.135.tgz#9d0b656d8c098d6071273a26a213c89b845c3342"
-  integrity sha512-OV3Gu+GWDrRujgXLCzDAns+gKp4BBlNRwVnNXxNngsPkOCgO+/jgv30rYOLUEbltOOihby/kdPJPWU3InUxCwQ==
+"@versatus/versatus-javascript@^0.1.150":
+  version "0.1.150"
+  resolved "https://registry.yarnpkg.com/@versatus/versatus-javascript/-/versatus-javascript-0.1.150.tgz#a05eb9dd2b9a922e78d8ea1c3008514b39174bff"
+  integrity sha512-4ipqrcJtSP9aPFpdpJqTZsyzPkYV/ygZonCOLIGLz6yrz66nZIEMWi73O1eBkAr5Q3Cs9EPnz+imGtWaTypb1w==
   dependencies:
     "@babel/core" "^7.23.9"
     "@babel/plugin-proposal-class-properties" "^7.18.6"
@@ -1213,6 +1213,7 @@
     "@types/yargs" "^17.0.32"
     axios "^1.6.7"
     babel-loader "^9.1.3"
+    bufferutil "^4.0.8"
     commander "^12.0.0"
     core-js "^3.35.1"
     ethers "^6.11.1"
@@ -1221,6 +1222,7 @@
     ts-node "^10.9.2"
     tsc-alias "^1.8.8"
     tsconfig-paths-webpack-plugin "^4.1.0"
+    utf-8-validate "^6.0.3"
     uuid "^9.0.1"
     webpack "^5.90.0"
     webpack-cli "^5.1.4"
@@ -1550,6 +1552,13 @@ buffer-from@^1.0.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.2.tgz#2b146a6fd72e80b4f55d255f35ed59a3a9a41bd5"
   integrity sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==
+
+bufferutil@^4.0.8:
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/bufferutil/-/bufferutil-4.0.8.tgz#1de6a71092d65d7766c4d8a522b261a6e787e8ea"
+  integrity sha512-4T53u4PdgsXqKaIctwF8ifXlRTTmEPJ8iEPWFdGZvcf7sbwYo6FKFEX9eNNAnzFZ7EzJAQ3CJeOtCRA4rDp7Pw==
+  dependencies:
+    node-gyp-build "^4.3.0"
 
 caniuse-lite@^1.0.30001587:
   version "1.0.30001599"
@@ -2252,6 +2261,11 @@ neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
+node-gyp-build@^4.3.0:
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.8.0.tgz#3fee9c1731df4581a3f9ead74664369ff00d26dd"
+  integrity sha512-u6fs2AEUljNho3EYTJNBfImO5QTo/J/1Etd+NVdCj7qWKUSN/bSLkZwhDv7I+w/MSC6qJ4cknepkAYykDdK8og==
+
 node-releases@^2.0.14:
   version "2.0.14"
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.14.tgz#2ffb053bceb8b2be8495ece1ab6ce600c4461b0b"
@@ -2821,6 +2835,13 @@ uri-js@^4.2.2:
   integrity sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
   dependencies:
     punycode "^2.1.0"
+
+utf-8-validate@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/utf-8-validate/-/utf-8-validate-6.0.3.tgz#7d8c936d854e86b24d1d655f138ee27d2636d777"
+  integrity sha512-uIuGf9TWQ/y+0Lp+KGZCMuJWc3N9BHA+l/UmHd/oUHwJJDeysyTRxNQVkbzsIWfGFbRe3OcgML/i0mvVRPOyDA==
+  dependencies:
+    node-gyp-build "^4.3.0"
 
 uuid@^9.0.1:
   version "9.0.1"

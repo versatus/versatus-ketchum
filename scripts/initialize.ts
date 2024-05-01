@@ -301,11 +301,12 @@ async function buildPokemonClass(pokemonName: string) {
 }
 
 async function deployPokemon(pokemonName: string) {
-  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 5 -t 5 --txInputs '{}' --createTestFilePath pokemon-inputs/pokemon-create.json`
+  const buildCommand = `lasrctl deploy -b ${pokemonName} -a hath2 -n ${pokemonName} -p ${pokemonName} -s ${pokemonName.toUpperCase()} --initializedSupply 20 -t 20 --txInputs '{}'`
   console.log(`running command: ${buildCommand}`)
   try {
     const result = await runCommand(buildCommand)
     console.log(`Deploy successful for ${pokemonName}`)
+    console.log('result', result)
 
     return result
   } catch (error) {
@@ -381,11 +382,13 @@ async function initializePokemons(pokemonToInitialize: string[]) {
       if (!programAddress) {
         throw new Error('NO PROGRAM ADDRESS')
       }
+
       console.log(
         `Registering ${pokemonName} with program address: ${programAddress}...`,
       )
+
       await registerPokemon(pokemonName, programAddress)
-      await registerPokemonWithBattleContract(programAddress)
+      // await registerPokemonWithBattleContract(programAddress)
       console.log('pokemon registered! doing next pokemon')
     }
   } catch (error) {
@@ -394,9 +397,9 @@ async function initializePokemons(pokemonToInitialize: string[]) {
 }
 
 initializePokemons([
-  'bulbasaur',
-  'charmander',
-  // 'squirtle',
+  // 'bulbasaur',
+  // 'charmander',
+  'squirtle',
   // 'caterpie',
   // 'weedle',
   // 'pidgey',

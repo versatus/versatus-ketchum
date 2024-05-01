@@ -8,7 +8,7 @@ import {
   buildUpdateInstruction,
   ComputeInputs,
   Outputs,
-  parseProgramInfo,
+  parseProgramTokenInfo,
   parseTxInputs,
   Program,
   ProgramUpdate,
@@ -211,7 +211,7 @@ class PokemonBattleProgram extends Program {
         battleId,
       } = txInputs
 
-      const programTokenInfo = parseProgramInfo(computeInputs)
+      const programTokenInfo = parseProgramTokenInfo(computeInputs)
       const currBattleState = JSON.parse(programTokenInfo?.data?.battles)
       const currBattle = currBattleState[battleId]
       currBattle.pokemon2Speed = pokemon2Speed
@@ -287,7 +287,7 @@ class PokemonBattleProgram extends Program {
   cancelBattle(computeInputs: ComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
-      const programInfo = parseProgramInfo(computeInputs)
+      const programInfo = parseProgramTokenInfo(computeInputs)
       const { from } = computeInputs.transaction
       let { battleId } = txInputs
 
@@ -339,7 +339,7 @@ class PokemonBattleProgram extends Program {
   declineBattle(computeInputs: ComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
-      const programInfo = parseProgramInfo(computeInputs)
+      const programInfo = parseProgramTokenInfo(computeInputs)
       const { from } = computeInputs.transaction
       let { battleId } = txInputs
 
@@ -391,7 +391,7 @@ class PokemonBattleProgram extends Program {
   initialize(computeInputs: ComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
-      const programInfo = parseProgramInfo(computeInputs)
+      const programInfo = parseProgramTokenInfo(computeInputs)
 
       const {
         trainer1Address,
@@ -474,7 +474,7 @@ class PokemonBattleProgram extends Program {
     try {
       const { from } = computeInputs.transaction
       const txInputs = parseTxInputs(computeInputs)
-      const programInfo = parseProgramInfo(computeInputs)
+      const programInfo = parseProgramTokenInfo(computeInputs)
 
       const {
         battleId,
