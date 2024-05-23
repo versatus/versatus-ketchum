@@ -1,17 +1,19 @@
 import {
   Address,
   buildTransferInstruction,
-  ComputeInputs,
+  IComputeInputs,
   formatHexToAmount,
   parseProgramTokenInfo,
   parseTxInputs,
   TokenUpdate,
+  ETH_PROGRAM_ADDRESS,
+  parseAmountToBigInt,
 } from '@versatus/versatus-javascript'
 
 import {
   buildCreateInstruction,
   buildProgramUpdateField,
-  buildTokenDistributionInstruction,
+  buildTokenDistribution,
   buildTokenUpdateField,
   buildUpdateInstruction,
 } from '@versatus/versatus-javascript'
@@ -190,7 +192,7 @@ export class BasePokemonProgram extends Program {
     return initialData ? initialData.imgUrl : ''
   }
 
-  create(computeInputs: ComputeInputs) {
+  create(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, from } = transaction
@@ -254,7 +256,7 @@ export class BasePokemonProgram extends Program {
         ),
       })
 
-      const distributionInstruction = buildTokenDistributionInstruction({
+      const distributionInstruction = buildTokenDistribution({
         programId: THIS,
         initializedSupply,
         to: THIS,
@@ -279,7 +281,7 @@ export class BasePokemonProgram extends Program {
       throw e
     }
   }
-  catch(computeInputs: ComputeInputs) {
+  catch(computeInputs: IComputeInputs) {
     try {
       const { transaction, accountInfo } = computeInputs
       const { from } = transaction
@@ -356,6 +358,13 @@ export class BasePokemonProgram extends Program {
         ),
       })
 
+      const transferToProgram = buildTransferInstruction({
+        from,
+        to: THIS,
+        tokenAddress: ETH_PROGRAM_ADDRESS,
+        amount: parseAmountToBigInt('1'),
+      })
+
       const transferToCaller = buildTransferInstruction({
         from: THIS,
         to: from,
@@ -366,12 +375,13 @@ export class BasePokemonProgram extends Program {
       return new Outputs(computeInputs, [
         transferToCaller,
         caughtPokemonInstructions,
+        transferToProgram,
       ]).toJson()
     } catch (e) {
       throw e
     }
   }
-  heal(computeInputs: ComputeInputs) {
+  heal(computeInputs: IComputeInputs) {
     try {
       const { transaction, accountInfo } = computeInputs
       const { from } = transaction
@@ -411,7 +421,7 @@ export class BasePokemonProgram extends Program {
       throw e
     }
   }
-  consumeRareCandy(computeInputs: ComputeInputs) {
+  consumeRareCandy(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { from } = transaction
@@ -540,7 +550,7 @@ function getExpForLevelFluctuating(level: number): number {
 
 const constructorArguments = JSON.stringify('REPLACE_ME')
 
-const start = (input: ComputeInputs) => {
+const start = (input: IComputeInputs) => {
   try {
     const contract = new BasePokemonProgram(constructorArguments)
     return contract.start(input)

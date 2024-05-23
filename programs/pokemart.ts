@@ -1,11 +1,9 @@
-import { ComputeInputs } from '@versatus/versatus-javascript'
+import { IComputeInputs } from '@versatus/versatus-javascript'
 
 import {
-  buildBurnInstruction,
   buildCreateInstruction,
-  buildMintInstructions,
   buildProgramUpdateField,
-  buildTokenDistributionInstruction,
+  buildTokenDistribution,
   buildTokenUpdateField,
   buildTransferInstruction,
   buildUpdateInstruction,
@@ -13,22 +11,11 @@ import {
 import { THIS } from '@versatus/versatus-javascript'
 import { Program, ProgramUpdate } from '@versatus/versatus-javascript'
 import { Address, AddressOrNamespace } from '@versatus/versatus-javascript'
-import {
-  ApprovalsExtend,
-  ApprovalsValue,
-  TokenField,
-  TokenFieldValue,
-  TokenOrProgramUpdate,
-  TokenUpdate,
-  TokenUpdateField,
-} from '@versatus/versatus-javascript'
-import { TokenUpdateBuilder } from '@versatus/versatus-javascript'
+import { TokenOrProgramUpdate } from '@versatus/versatus-javascript'
 import { Outputs } from '@versatus/versatus-javascript'
 import {
-  checkIfValuesAreUndefined,
   formatAmountToHex,
   formatHexToAmount,
-  parseAmountToBigInt,
   validate,
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'
@@ -42,7 +29,7 @@ class NonFungibleTokenProgram extends Program {
     })
   }
 
-  create(computeInputs: ComputeInputs) {
+  create(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, from } = transaction
@@ -114,7 +101,7 @@ class NonFungibleTokenProgram extends Program {
         action: 'extend',
       })
 
-      const distributionInstruction = buildTokenDistributionInstruction({
+      const distributionInstruction = buildTokenDistribution({
         programId: THIS,
         initializedSupply,
         to: THIS,
@@ -141,7 +128,7 @@ class NonFungibleTokenProgram extends Program {
     }
   }
 
-  sell(computeInputs: ComputeInputs) {
+  sell(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, from } = transaction
@@ -186,7 +173,7 @@ class NonFungibleTokenProgram extends Program {
   }
 }
 
-const start = (input: ComputeInputs) => {
+const start = (input: IComputeInputs) => {
   try {
     const contract = new NonFungibleTokenProgram()
     return contract.start(input)

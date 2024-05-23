@@ -1,11 +1,11 @@
-import { ComputeInputs } from '@versatus/versatus-javascript'
+import { IComputeInputs } from '@versatus/versatus-javascript'
 
 import {
   buildBurnInstruction,
   buildCreateInstruction,
   buildMintInstructions,
   buildProgramUpdateField,
-  buildTokenDistributionInstruction,
+  buildTokenDistribution,
   buildTokenUpdateField,
   buildUpdateInstruction,
 } from '@versatus/versatus-javascript'
@@ -41,7 +41,7 @@ class FungibleTokenProgram extends Program {
     })
   }
 
-  approve(computeInputs: ComputeInputs) {
+  approve(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, programId } = transaction
@@ -77,7 +77,7 @@ class FungibleTokenProgram extends Program {
     }
   }
 
-  burn(computeInputs: ComputeInputs) {
+  burn(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { from, programId, value } = transaction
@@ -98,7 +98,7 @@ class FungibleTokenProgram extends Program {
     }
   }
 
-  create(computeInputs: ComputeInputs) {
+  create(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, from, to } = transaction
@@ -150,7 +150,7 @@ class FungibleTokenProgram extends Program {
         action: 'extend',
       })
 
-      const distributionInstruction = buildTokenDistributionInstruction({
+      const distributionInstruction = buildTokenDistribution({
         programId: THIS,
         initializedSupply: formatAmountToHex(initializedSupply),
         to: recipientAddress ?? to,
@@ -192,7 +192,7 @@ class FungibleTokenProgram extends Program {
     }
   }
 
-  mint(computeInputs: ComputeInputs) {
+  mint(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const currProgramInfo = validate(
@@ -233,7 +233,7 @@ class FungibleTokenProgram extends Program {
   }
 }
 
-const start = (input: ComputeInputs) => {
+const start = (input: IComputeInputs) => {
   try {
     const contract = new FungibleTokenProgram()
     return contract.start(input)

@@ -1,12 +1,13 @@
 import {
   Address,
   AddressOrNamespace,
+  addTokenApprovals,
   buildCreateInstruction,
   buildProgramUpdateField,
-  buildTokenDistributionInstruction,
+  buildTokenDistribution,
   buildTokenUpdateField,
   buildUpdateInstruction,
-  ComputeInputs,
+  IComputeInputs,
   Outputs,
   parseProgramTokenInfo,
   parseTxInputs,
@@ -16,6 +17,7 @@ import {
   TokenOrProgramUpdate,
   TokenUpdate,
   TokenUpdateBuilder,
+  updateTokenData,
   validate,
   validateAndCreateJsonString,
 } from '@versatus/versatus-javascript'
@@ -39,39 +41,24 @@ class PokemonBattleProgram extends Program {
     })
   }
 
-  approveTrainer(computeInputs: ComputeInputs) {
+  approveTrainer(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, programId } = transaction
-      const programAddress = new AddressOrNamespace(new Address(programId))
 
-      const update = buildTokenUpdateField({
-        field: 'approvals',
-        value: JSON.parse(transactionInputs),
-        action: 'extend',
+      const approvals = addTokenApprovals({
+        accountAddress: programId,
+        programAddress: programId,
+        approvals: JSON.parse(transactionInputs),
       })
 
-      const tokenUpdate = new TokenUpdate(
-        new AddressOrNamespace(THIS),
-        new AddressOrNamespace(THIS),
-        [update],
-      )
-      const tokenOrProgramUpdate = new TokenOrProgramUpdate(
-        'tokenUpdate',
-        tokenUpdate,
-      )
-      const updateInstruction = new TokenUpdateBuilder()
-        .addTokenAddress(programAddress)
-        .addUpdateField(tokenOrProgramUpdate)
-        .build()
-
-      return new Outputs(computeInputs, [updateInstruction]).toJson()
+      return new Outputs(computeInputs, [approvals]).toJson()
     } catch (e) {
       throw e
     }
   }
 
-  addPokemon(computeInputs: ComputeInputs) {
+  addPokemon(computeInputs: IComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
       const { pokemonAddress } = txInputs
@@ -97,7 +84,7 @@ class PokemonBattleProgram extends Program {
     }
   }
 
-  create(computeInputs: ComputeInputs) {
+  create(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, from } = transaction
@@ -173,7 +160,7 @@ class PokemonBattleProgram extends Program {
         action: 'extend',
       })
 
-      const distributionInstruction = buildTokenDistributionInstruction({
+      const distributionInstruction = buildTokenDistribution({
         programId: THIS,
         initializedSupply,
         to: recipientAddress,
@@ -200,7 +187,7 @@ class PokemonBattleProgram extends Program {
     }
   }
 
-  acceptBattle(computeInputs: ComputeInputs) {
+  acceptBattle(computeInputs: IComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
       let {
@@ -284,7 +271,7 @@ class PokemonBattleProgram extends Program {
     }
   }
 
-  cancelBattle(computeInputs: ComputeInputs) {
+  cancelBattle(computeInputs: IComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
       const programInfo = parseProgramTokenInfo(computeInputs)
@@ -336,7 +323,7 @@ class PokemonBattleProgram extends Program {
     }
   }
 
-  declineBattle(computeInputs: ComputeInputs) {
+  declineBattle(computeInputs: IComputeInputs) {
     try {
       const txInputs = parseTxInputs(computeInputs)
       const programInfo = parseProgramTokenInfo(computeInputs)
@@ -388,8 +375,9 @@ class PokemonBattleProgram extends Program {
     }
   }
 
-  initialize(computeInputs: ComputeInputs) {
+  initialize(computeInputs: IComputeInputs) {
     try {
+      const { programId } = computeInputs.transaction
       const txInputs = parseTxInputs(computeInputs)
       const programInfo = parseProgramTokenInfo(computeInputs)
 
@@ -404,7 +392,6 @@ class PokemonBattleProgram extends Program {
       } = txInputs
 
       const currBattleState = JSON.parse(programInfo?.data?.battles)
-
       const currBattleKeys = Object.keys(currBattleState)
 
       validate(trainer1Address, 'missing trainer1Address')
@@ -437,40 +424,27 @@ class PokemonBattleProgram extends Program {
         }),
       }
 
-      const dataStr = validateAndCreateJsonString(dataObj)
-
-      const addBattle = buildTokenUpdateField({
-        field: 'data',
-        value: dataStr,
-        action: 'extend',
+      const updateTokenWithBattle = updateTokenData({
+        accountAddress: programId,
+        programAddress: programId,
+        data: dataObj,
       })
 
-      const programUpdateInstructions = buildUpdateInstruction({
-        update: new TokenOrProgramUpdate(
-          'tokenUpdate',
-          new TokenUpdate(
-            new AddressOrNamespace(THIS),
-            new AddressOrNamespace(THIS),
-            [addBattle],
-          ),
-        ),
-      })
-
-      return new Outputs(computeInputs, [programUpdateInstructions]).toJson()
+      return new Outputs(computeInputs, [updateTokenWithBattle]).toJson()
     } catch (e) {
       throw e
     }
   }
 
-  placeBet(computeInputs: ComputeInputs) {
+  placeBet(computeInputs: IComputeInputs) {
     // Method for participants to place bets on the outcome
   }
 
-  startBattle(computeInputs: ComputeInputs) {
+  startBattle(computeInputs: IComputeInputs) {
     // Method to officially start the battle after both acceptances and bet placements
   }
 
-  attack(computeInputs: ComputeInputs) {
+  attack(computeInputs: IComputeInputs) {
     try {
       const { from } = computeInputs.transaction
       const txInputs = parseTxInputs(computeInputs)
@@ -1028,7 +1002,7 @@ const effectivenessChart = {
   },
 }
 
-const start = (input: ComputeInputs) => {
+const start = (input: IComputeInputs) => {
   const contract = new PokemonBattleProgram()
   return contract.start(input)
 }

@@ -398,8 +398,9 @@ async function initializePokemons(pokemonToInitialize: string[]) {
 
 initializePokemons([
   // 'bulbasaur',
-  // 'charmander',
+  'charmander',
   'squirtle',
+  // 'beartic',
   // 'caterpie',
   // 'weedle',
   // 'pidgey',

@@ -3,10 +3,10 @@ import {
   AddressOrNamespace,
   buildCreateInstruction,
   buildProgramUpdateField,
-  buildTokenDistributionInstruction,
+  buildTokenDistribution,
   buildTokenUpdateField,
   buildUpdateInstruction,
-  ComputeInputs,
+  IComputeInputs,
   formatAmountToHex,
   formatHexToAmount,
   Outputs,
@@ -28,7 +28,7 @@ class Ketchum extends Program {
     this.registerContractMethod('create', this.create)
   }
 
-  addPokemon(computeInputs: ComputeInputs) {
+  addPokemon(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, from } = transaction
@@ -82,7 +82,7 @@ class Ketchum extends Program {
     }
   }
 
-  addTrainer(computeInputs: ComputeInputs) {
+  addTrainer(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const txInputs = parseTxInputs(computeInputs)
@@ -135,7 +135,7 @@ class Ketchum extends Program {
     }
   }
 
-  create(computeInputs: ComputeInputs) {
+  create(computeInputs: IComputeInputs) {
     try {
       const { transaction } = computeInputs
       const { transactionInputs, from } = transaction
@@ -211,7 +211,7 @@ class Ketchum extends Program {
         action: 'extend',
       })
 
-      const distributionInstruction = buildTokenDistributionInstruction({
+      const distributionInstruction = buildTokenDistribution({
         programId: THIS,
         initializedSupply,
         to: recipientAddress,
