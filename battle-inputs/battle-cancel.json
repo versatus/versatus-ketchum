@@ -1,12 +1,12 @@
 {
   "contractInputs": "{\"0x1a2b3c4d5e6f70819293a4b5c6d7e8f9\":\"0x0000000000000000000000000000000000000000000000000000000000000001\"}",
-  "op": "approveTrainer",
+  "op": "cancelBattle",
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "[[\"0x482830d7655fb8465a43844fc1530a7713781b49\",[\"0x0000000000000000000000000000000000000000000000000000000000000001\"]]]",
+    "transactionInputs": "{\"battleId\":\"0\"}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
-    "op": "approveTrainer",
+    "op": "cancelBattle",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "r": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     "s": "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
@@ -35,7 +35,7 @@
         "data": {},
         "status": "free"
       },
-      "0x57234c52617e7ca8edc5577ebe3eb38d53a77607": {
+      "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43": {
         "programId": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607",
         "ownerId": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607",
         "balance": "0x00000000000000000000000000000000000000000000cd67ce2c6fbd8a400000",
@@ -50,12 +50,16 @@
         "tokenIds": [],
         "allowance": {},
         "approvals": {},
-        "data": {},
+        "data": {
+          "battles": "{\"0\": {\"battleId\": \"0\",\"battleState\": \"initialized\", \"defenderTrainerAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\", \"defenderPokemonAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"turns\":[]}}"
+        },
         "status": "free"
       }
     },
     "nonce": "0x000000000000000000000000000000000000000000000000000000000000001c",
-    "programAccountData": {},
+    "programAccountData": {
+      "battles": "{\"0\": {\"battleId\": \"0\", \"defenderTrainerAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\", \"defenderPokemonAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"turns\":\"[]\"}}"
+    },
     "programAccountMetadata": {
       "content_id": "bafyreidhfvw4jiqom72332brsln3micsa4b7grur4rixkwvyrh6u4i3ecy",
       "initializedSupply": "1000000000000000000000000",

@@ -1,12 +1,12 @@
 {
   "contractInputs": "{\"0x1a2b3c4d5e6f70819293a4b5c6d7e8f9\":\"0x0000000000000000000000000000000000000000000000000000000000000001\"}",
-  "op": "addPokemon",
+  "op": "registerTrainer",
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "{\"pokemonAddress\":\"0x100444c7D04A842D19bc3eE63cB7b96682FF3f43\"}",
+    "transactionInputs": "{\"address\": \"0xbad81a84ac95A536Be134153Ab3db0B98243E695\"}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
-    "op": "addPokemon",
+    "op": "registerTrainer",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "r": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     "s": "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
@@ -19,7 +19,7 @@
   "version": 1,
   "accountInfo": {
     "accountType": {
-      "program": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43"
+      "program": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607"
     },
     "programNamespace": null,
     "ownerAddress": "0x482830d7655fb8465a43844fc1530a7713781b49",
@@ -47,18 +47,18 @@
           "to": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607",
           "totalSupply": "1000000000000000000000000"
         },
-        "tokenIds": [],
+        "tokenIds": ["0x00000000000000000000000000000000000000000000cd67ce2c6fbd8a400000"],
         "allowance": {},
         "approvals": {},
         "data": {
-          "battles": "{\"0\": {\"battleId\": \"0\",\"battleState\": \"initialized\", \"defenderTrainerAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\", \"defenderPokemonAddress\": \"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"turns\":[]}}"
+          "users": "{\"0x57234c52617e7ca8edc5577ebe3eb38d53a77607\":\"{\\\"address\\\": \\\"0x57234c52617e7ca8edc5577ebe3eb38d53a77607\\\",\\\"username\\\": \\\"hathbanger\\\"}\"}"
         },
         "status": "free"
       }
     },
     "nonce": "0x000000000000000000000000000000000000000000000000000000000000001c",
     "programAccountData": {
-      "battles": ""
+        "users": "{\"0x57234c52617e7ca8edc5577ebe3eb38d53a77607\":\"{\\\"address\\\": \\\"0x57234c52617e7ca8edc5577ebe3eb38d53a77607\\\",\\\"username\\\": \\\"hathbanger\\\"}\"}"
     },
     "programAccountMetadata": {
       "content_id": "bafyreidhfvw4jiqom72332brsln3micsa4b7grur4rixkwvyrh6u4i3ecy",

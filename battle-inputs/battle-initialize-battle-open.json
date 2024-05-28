@@ -1,12 +1,12 @@
 {
   "contractInputs": "",
-  "op": "initialize",
+  "op": "initializeBattle",
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "{\"trainer1Address\":\"0xA2E51Aee57ebB171a766ce10DB95Dee262bC6809\",\"pokemon1Address\":\"0xa2acd67da9c8507d2a217b739830edc56121fe74\",\"pokemon1TokenId\":\"0x00000000000000000000000000000000000000000000000053444835ec580000\",\"pokemon1Speed\":\"6\"}",
+    "transactionInputs": "{\"trainer1Address\":\"0xe17c5Af6ED2D35C572AAe522dE9eFFf48880b245\",\"pokemon1Address\":\"0x608ebfd3698acd8a3bfc332ebf9b1f77d99a28da\",\"pokemon1TokenId\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"pokemon1Speed\":\"6\"}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
-    "op": "initialize",
+    "op": "initializeBattle",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "r": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     "s": "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
@@ -14,7 +14,7 @@
     "transactionType": {
       "call": "0x0000000000000000000000000000000000000000000000000000000000000001"
     },
-    "value": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    "value": "0x0000000000000000000000000000000000000000000000000000000000000001"
   },
   "version": 1,
   "accountInfo": {
@@ -40,7 +40,7 @@
         "allowance": {},
         "approvals": {},
         "data": {
-          "battles": "{\"0\": {},\"1\":{}, \"2\":{}}"
+          "battles": "{\"0\": {}}"
         },
         "status": "free"
       }

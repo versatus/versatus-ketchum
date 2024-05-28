@@ -1,0 +1,55 @@
+{
+  "contractInputs": "",
+  "op": "initializeBattle",
+  "transaction": {
+    "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
+    "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
+    "transactionInputs": "{\"trainer1Address\":\"0xA2E51Aee57ebB171a766ce10DB95Dee262bC6809\",\"pokemon1Address\":\"0xa2acd67da9c8507d2a217b739830edc56121fe74\",\"pokemon1TokenId\":\"0x00000000000000000000000000000000000000000000000053444835ec580000\",\"pokemon1Speed\":\"6\"}",
+    "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "op": "initializeBattle",
+    "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
+    "r": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "s": "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+    "v": 1,
+    "transactionType": {
+      "call": "0x0000000000000000000000000000000000000000000000000000000000000001"
+    },
+    "value": "0x0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "version": 1,
+  "accountInfo": {
+    "accountType": {
+      "program": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607"
+    },
+    "programNamespace": null,
+    "ownerAddress": "0x482830d7655fb8465a43844fc1530a7713781b49",
+    "programs": {
+      "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43": {
+        "programId": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607",
+        "ownerId": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607",
+        "balance": "0x00000000000000000000000000000000000000000000cd67ce2c6fbd8a400000",
+        "metadata": {
+          "content_id": "bafyreidhfvw4jiqom72332brsln3micsa4b7grur4rixkwvyrh6u4i3ecy",
+          "initializedSupply": "1000000000000000000000000",
+          "name": "Anotha One",
+          "symbol": "LOVE",
+          "to": "0x57234c52617e7ca8edc5577ebe3eb38d53a77607",
+          "totalSupply": "1000000000000000000000000"
+        },
+        "tokenIds": [],
+        "allowance": {},
+        "approvals": {},
+        "data": {
+          "battles": "{\"0\": {},\"1\":{}, \"2\":{}}"
+        },
+        "status": "free"
+      }
+    },
+    "nonce": "0x000000000000000000000000000000000000000000000000000000000000001c",
+    "programAccountData": {
+      "battles": "{}"
+    },
+    "programAccountMetadata": {},
+    "programAccountLinkedPrograms": []
+  }
+}

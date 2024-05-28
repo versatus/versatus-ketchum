@@ -4,7 +4,7 @@
   "transaction": {
     "from": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
     "to": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
-    "transactionInputs": "{\"battleId\":\"0\",\"trainer2Address\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"pokemon2Address\":\"0x825e7dc30189bb07ec85bdd4aeff2a77c23768bf\",\"pokemon2TokenId\":\"0x825e7dc30189bb07ec85bdd4aeff2a77c23768bf\"}",
+    "transactionInputs": "{\"battleId\":\"0\",\"pokemon1Speed\":\"0\",\"trainer1Address\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"trainer2Address\":\"0x1234d4B33fa19bf655519F10E8FdeD9E31259b28\",\"pokemon2Address\":\"0x825e7dc30189bb07ec85bdd4aeff2a77c23768bf\",\"pokemon2Speed\":\"1\",\"pokemon2TokenId\":\"0x825e7dc30189bb07ec85bdd4aeff2a77c23768bf\"}",
     "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001",
     "op": "acceptBattle",
     "programId": "0x100444c7D04A842D19bc3eE63cB7b96682FF3f43",
